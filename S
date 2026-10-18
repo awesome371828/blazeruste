@@ -1,0 +1,1161 @@
+let i = null
+  , l = null
+  , h = globalThis.THREE
+  , r = null
+  , b = null;
+const N = {
+    clown: {
+        solo: [],
+        duel: [{
+            id: "bat",
+            label: "БИТА",
+            hit: "bat",
+            ico: "M5 19 16 8M15 5l4 4-2 2-4-4zM4 20l2-2"
+        }]
+    },
+    maniac: {
+        solo: [{
+            id: "machete",
+            label: "МАЧЕТЕ",
+            charges: 3,
+            ico: "M4 20l9-9M12 6l6 6 3-3-3-6-6 3zM4 20l3-1-2-2z"
+        }],
+        duel: [{
+            id: "mthrow",
+            label: "МАЧЕТЕ",
+            hit: "machete",
+            ico: "M4 20l9-9M12 6l6 6 3-3-3-6-6 3zM4 20l3-1-2-2z"
+        }]
+    },
+    zombie: {
+        solo: [{
+            id: "truck",
+            label: "ГРУЗОВИК",
+            once: !0,
+            ico: "M2 15V8h11v7M13 11h5l3 3v1M5 18a2 2 0 1 0 0-.1M17 18a2 2 0 1 0 0-.1M2 15h20"
+        }],
+        duel: []
+    },
+    scarecrow: {
+        solo: [{
+            id: "broom",
+            label: "МЕТЛА",
+            once: !0,
+            ico: "M4 20 15 9M14 4l6 6M13 5l2-2 6 6-2 2"
+        }, {
+            id: "dash",
+            label: "ТЫКВА",
+            once: !0,
+            ico: "M12 5c-5 0-9 3-9 8s4 7 9 7 9-2 9-7-4-8-9-8zM12 5V2M7 14l3 2 2-2 2 2 3-2"
+        }, {
+            id: "maze",
+            label: "ЛАБИРИНТ",
+            once: !0,
+            lv: 5,
+            ico: "M4 4h16v16H4zM4 10h10M10 16h10M14 4v6"
+        }],
+        duel: [{
+            id: "pumpkin",
+            label: "ТЫКВА",
+            hit: "pumpkin",
+            ico: "M12 5c-5 0-9 3-9 8s4 7 9 7 9-2 9-7-4-8-9-8zM12 5V2M8 11h2M14 11h2M8 16h8"
+        }, {
+            id: "crows",
+            label: "ВОРОНЫ",
+            hit: "crows",
+            ico: "M3 12l5-3 4 2 4-4 5 2-4 3 2 5-5-3-4 4-1-5z"
+        }, {
+            id: "dmaze",
+            label: "ЛАБИРИНТ",
+            hit: "maze",
+            ico: "M4 4h16v16H4zM4 10h10M10 16h10M14 4v6"
+        }]
+    },
+    skeleton: {
+        solo: [{
+            id: "palace",
+            label: "ДВОРЕЦ",
+            once: !0,
+            lv: 4,
+            ico: "M3 21h18M5 21V11l3-3 3 3v10M13 21V7l3-4 3 4v14M8 14h0M16 11h0"
+        }],
+        duel: [{
+            id: "dpalace",
+            label: "ДВОРЕЦ",
+            hit: "palace",
+            ico: "M3 21h18M5 21V11l3-3 3 3v10M13 21V7l3-4 3 4v14M8 14h0M16 11h0"
+        }]
+    }
+}
+  , X = {
+    bat: "Бита",
+    machete: "Мачете",
+    pumpkin: "Тыква",
+    crows: "Вороны",
+    palace: "Костяной дворец",
+    maze: "Лабиринт"
+}
+  , o = {
+    charges: {},
+    used: {},
+    sent: {},
+    act: null,
+    brainLeft: 0,
+    drag: null,
+    inv: 0
+};
+export function init(t) {
+    return i = t,
+    l = t.lib,
+    h = t.THREE || h,
+    r = t.game,
+    b = t.W,
+    r.onStart = pt,
+    r.hwTick = mt,
+    t.OBSTACLE_DEFS.z_brain = {
+        mat: "skin",
+        make: Ht,
+        box: [[-2.6, 2.6, 0, 6.2]]
+    },
+    {
+        use,
+        buttons,
+        msg,
+        frame,
+        onBrain,
+        claimBrains,
+        grace: ht,
+        drag: dt
+    }
+}
+function ht(t) {
+    o.inv = Math.max(o.inv, t)
+}
+function dt(t) {
+    o.drag = {
+        left: t,
+        t: 0
+    }
+}
+function Q() {
+    if (r.state !== "play")
+        return null;
+    const t = i.duel;
+    return t.on ? t.phase === "race" ? "duel" : null : r.duel ? null : "solo"
+}
+function J() {
+    const t = Q()
+      , e = N[r.skin];
+    return t && e ? e[t] : []
+}
+export function buttons() {
+    const t = Q()
+      , e = Math.round(r.scroll - r.startScroll);
+    return J().map(n => {
+        let s = n.label
+          , a = !1;
+        if (n.hit)
+            o.sent[n.id] ? (s = "БЫЛО",
+            a = !0) : e < 3e3 && (s = Math.ceil((3e3 - e) / 10) + " м",
+            a = !0);
+        else if (n.id === "broom")
+            r.fly ? s = "ЛЕЧУ" : r.flyUsed && (s = "БЫЛО",
+            a = !0);
+        else if (n.charges) {
+            const c = o.charges[n.id] | 0;
+            s = o.arm ? "НАГОТОВЕ" : n.label + " ×" + c,
+            a = c <= 0 || !!o.act
+        } else
+            n.once && (o.act && o.act.id === n.id ? s = n.id === "truck" ? "ЕДУ" : "ЕМ" : o.used[n.id] ? (s = "БЫЛО",
+            a = !0) : a = !!o.act);
+        return {
+            label: s,
+            cd: a,
+            ico: n.ico,
+            ctx: t
+        }
+    }
+    )
+}
+function pt() {
+    o.charges = {
+        machete: 3
+    },
+    o.used = {},
+    o.sent = {},
+    o.drag = null,
+    o.inv = 0,
+    o.arm = !1,
+    E(!0),
+    o.brainLeft = r.skin === "zombie" && !r.duel ? 3 : 0;
+    for (const t of d.objs)
+        t.done = !0;
+    for (const t of d.tmp)
+        i.scene.remove(t);
+    if (d.tmp.clear(),
+    d.debris)
+        for (const t of d.debris.P)
+            t.life = 0;
+    it(0);
+    for (const t of [i.rig, i.rig2]) {
+        t.hwHeadPump && (t.hwHeadPump.visible = !1),
+        t.hwSwing = t.hwThrow = 0;
+        const e = t.hwg && t.hwg.maniac;
+        e && (e.ang = 3.55,
+        e.hold.visible = t.skin === "maniac")
+    }
+}
+export function use(t) {
+    const e = J()[t];
+    if (!e || r.paused)
+        return;
+    if (r.sfx.ensure(),
+    e.hit)
+        return kt(e);
+    if (e.id === "broom") {
+        !r.useBroom() && r.flyUsed && !r.fly && i.ui.toast("Метла — раз за забег", 2);
+        return
+    }
+    if (!(o.act || r.fly)) {
+        if (e.lv) {
+            if (o.used[e.id])
+                return i.ui.toast((e.lv === 4 ? "Костяной дворец" : "Лабиринт") + " — раз за забег", 2);
+            o.used[e.id] = !0,
+            i.palace(e.lv).then(s => {
+                s || (o.used[e.id] = !1)
+            }
+            );
+            return
+        }
+        if (e.id === "machete")
+            return wt();
+        if (e.id === "truck")
+            return o.used.truck ? i.ui.toast("Грузовик — раз за забег", 2) : (o.used.truck = !0,
+            xt());
+        if (e.id === "dash")
+            return o.used.dash ? i.ui.toast("Тыква-обжора — раз за забег", 2) : (o.used.dash = !0,
+            gt())
+    }
+}
+function mt(t, e) {
+    if (!e) {
+        o.act && E(!0),
+        r.hwInv = !1,
+        r.hwHold = !1;
+        return
+    }
+    if (o.brainLeft > 0)
+        for (const n of b.obstacles.active)
+            n.hwSeen || (n.hwSeen = !0,
+            o.brainLeft > 0 && !n.bag && (Mt(n),
+            o.brainLeft--));
+    if (o.drag) {
+        const n = Math.min(o.drag.left, 75 * t);
+        o.drag.left -= n,
+        o.drag.t += t,
+        B(-n),
+        o.drag.left <= .01 && (o.drag = null,
+        o.inv = Math.max(o.inv, .5))
+    }
+    if (o.act && bt(t),
+    o.arm) {
+        const n = K(tt);
+        n && et(n)
+    }
+    o.inv > 0 && (o.inv -= t),
+    r.hwInv = !!o.act || !!o.drag || o.inv > 0,
+    r.hwHold = !!o.act || !!o.drag
+}
+function B(t) {
+    r.scroll += t,
+    r.score = Math.max(0, r.score + t / 10),
+    r.spawnIn -= t,
+    b.obstacles.update(t, 0, r.speed, r.scroll)
+}
+function K(t) {
+    let e = null;
+    for (const n of b.obstacles.active) {
+        if (!n.boxes.length || n.hwDead || n.bag)
+            continue;
+        const s = n.x + n.x0;
+        s > -3 && s < t && (!e || s < e.x + e.x0) && (e = n)
+    }
+    return e
+}
+function O(t) {
+    t.boxes.length = 0,
+    t.bonus = null,
+    t.hwDead = !0
+}
+function $(t) {
+    const e = k(t);
+    b.obstacles.release(t),
+    t.boxes.length = 0,
+    t.brain ? r.brainGot = (r.brainGot | 0) + 1 : r.kingGot++,
+    r.onBonus && r.onBonus(t.brain ? "brain" : "bag", e)
+}
+const tt = 120;
+function wt() {
+    if ((o.charges.machete | 0) <= 0)
+        return i.ui.toast("Мачете — 3 раза за забег", 2);
+    if (o.arm)
+        return;
+    const t = K(tt);
+    if (!t)
+        return o.arm = !0,
+        i.ui.toast("Мачете наготове — полетит в первое препятствие", 1.8);
+    et(t)
+}
+function et(t) {
+    o.arm = !1,
+    o.charges.machete--;
+    const e = t.x + t.x0 < 46;
+    O(t),
+    e ? (i.rig.hwSwing = .001,
+    Pt(t),
+    Ft()) : (i.rig.hwThrow = .8,
+    zt(t),
+    ct())
+}
+function Mt(t) {
+    const e = b.obstacles;
+    e.release(t),
+    t.rig = t.rig2 = t.m2 = null,
+    t.bonus = null;
+    const n = (t.x0 + t.x1) / 2
+      , s = e.getMesh("z_brain");
+    s.visible = !0,
+    s.position.set(t.x + n, -.12, 0),
+    s.rotation.set(0, .4 + Math.random() * .5, 0),
+    s.scale.setScalar(.01),
+    Object.assign(t, {
+        kind: "static",
+        vx: 0,
+        bag: !0,
+        brain: !0,
+        bagT: 0,
+        meshes: [{
+            m: s,
+            dx: n
+        }],
+        boxes: [[n - 2.6, n + 2.6, 0, 6.2]],
+        x0: n - 2.6,
+        x1: n + 2.6,
+        top: 6.2,
+        bottom: 0
+    })
+}
+export function onBrain(t) {
+    const e = r.sfx;
+    e.ctx && (e.noise(.3, "lowpass", 900, 200, 1, .25, 0, .3, {
+        brown: !0
+    }),
+    e.tone("sine", 220, 120, .25, .12, 0, .3),
+    e.bell(988, .07, .6, .2, .08)),
+    i.fx.burst(t, 4, 0, 26, 30),
+    i.haptic("tap")
+}
+export async function claimBrains(t) {
+    if (r.brainGot = 0,
+    !i.HAS_SERVER)
+        return;
+    const e = await i.profile.api("/api/hw/brains", {
+        n: t
+    });
+    e && e.ok && (e.profile && i.profile.take(e.profile),
+    i.ui.toast("Мешки с мозгами: +" + e.gain + " монет", 3.5))
+}
+function xt() {
+    const t = Et();
+    t.m.visible = !0,
+    o.act = {
+        id: "truck",
+        t: 0,
+        left: 5,
+        x: -90,
+        out: !1,
+        done: 0
+    },
+    Ct(!0)
+}
+function gt() {
+    o.act = {
+        id: "dash",
+        t: 0,
+        left: 3,
+        eat: []
+    },
+    Bt(i.rig).set(!0),
+    ft(0)
+}
+function E(t) {
+    const e = o.act;
+    if (e) {
+        if (o.act = null,
+        e.id === "truck") {
+            const n = d.truck;
+            n && (n.leave = 1),
+            i.rig.root.position.y = 0
+        }
+        if (e.id === "dash") {
+            const n = i.rig.hwPump;
+            n && n.set(!1)
+        }
+        t || (o.inv = .6)
+    }
+}
+function bt(t) {
+    const e = o.act;
+    e.t += t;
+    const n = i.dino.pose;
+    if (e.id === "truck") {
+        e.x = Math.min(0, e.x + 160 * t);
+        const s = e.x > -6
+          , a = l.smooth(-30, 0, e.x);
+        if (s && B(r.speed * .6 * t),
+        vt(n, a),
+        i.rig.root.position.y = 6.6 * a,
+        s) {
+            for (const c of b.obstacles.active)
+                if (!(!c.boxes.length || c.hwDead)) {
+                    if (c.bag) {
+                        c.x + c.x0 < 4 && $(c);
+                        continue
+                    }
+                    if (c.x + c.x0 < 30 && c.x + c.x1 > -8 && (O(c),
+                    Lt(c),
+                    e.left--,
+                    e.left <= 0))
+                        break
+                }
+        }
+        (e.left <= 0 || e.t > 25) && (e.done = 1,
+        E(),
+        i.ui.toast("Грузовик снёс 5 препятствий", 2))
+    } else if (e.id === "dash") {
+        B(r.speed * .7 * t);
+        for (const s of b.obstacles.active)
+            if (!(!s.boxes.length || s.hwDead)) {
+                if (s.bag) {
+                    s.x + s.x0 < 4 && $(s);
+                    continue
+                }
+                if (s.x + s.x0 < 16 && s.x + s.x1 > -6 && (O(s),
+                Tt(s),
+                e.left--,
+                ft(3 - e.left),
+                e.left <= 0))
+                    break
+            }
+        (e.left <= 0 || e.t > 20) && (E(),
+        i.ui.toast("Тыква съела 3 препятствия", 2))
+    }
+}
+const T = {};
+function vt(t, e) {
+    l.jumpTrack.sample(22, T);
+    const n = T.hy - 7.4;
+    for (const s of l.POSE_FIELDS)
+        s !== "wph" && (t[s] = l.lerp(t[s], s === "hy" ? T.hy - n : s === "ly" || s === "ry" ? T[s] - n : T[s], e));
+    t.pt = l.lerp(t.pt, -4, e),
+    t.jw = l.lerp(t.jw, 18, e),
+    l.applyPose(i.rig, t)
+}
+function kt(t) {
+    const e = i.duel
+      , n = Math.round(r.scroll - r.startScroll);
+    if (o.sent[t.id])
+        return i.ui.toast(X[t.hit] + " — раз за дуэль", 2);
+    if (n < 3e3)
+        return i.ui.toast(X[t.hit] + " — после 300 м", 2);
+    e.net && (o.sent[t.id] = !0,
+    e.net.send({
+        t: "hit",
+        k: t.hit,
+        d: n
+    }),
+    rt(t.hit, !0))
+}
+export function msg(t) {
+    const e = i.duel;
+    if (t.t === "ohit")
+        rt(t.k, !1),
+        t.k === "bat" || t.k === "machete" ? (r.stun = (t.ms || 2e3) / 1e3,
+        r.sfx.boom(),
+        i.haptic("hit"),
+        i.ui.toast((t.k === "bat" ? "Клоун оглушил вас битой" : "Маньяк попал мачете") + ": " + Math.round((t.ms || 2e3) / 1e3) + " с без прыжков!", 2.5)) : t.k === "pumpkin" ? (it(t.ms || 5e3),
+        at(i.rig, (t.ms || 5e3) / 1e3),
+        It(),
+        i.haptic("hit")) : t.k === "crows" && (o.drag = {
+            left: t.drag || 50,
+            t: 0
+        },
+        ot(i.rig, !1),
+        ut(),
+        i.haptic("hit"),
+        i.ui.toast("Вороны тащат вас назад!", 2.2));
+    else if (t.t === "hitok")
+        t.k === "bat" || t.k === "machete" ? (e.oppStun = (t.ms || 2e3) / 1e3,
+        i.ui.toast("Попали! Соперник оглушён на " + Math.round((t.ms || 2e3) / 1e3) + " с", 2.5)) : t.k === "pumpkin" ? (at(i.rig2, (t.ms || 5e3) / 1e3),
+        i.ui.toast("Тыква на голове у соперника!", 2.5)) : t.k === "crows" && (ot(i.rig2, !0),
+        i.ui.toast("Вороны оттащили соперника на 5 м", 2.5)),
+        r.sfx.boom();
+    else if (t.t === "hitno") {
+        const n = Object.values(N).flatMap(s => s.duel).find(s => s.hit === t.k);
+        n && t.why !== "used" && (o.sent[n.id] = !1),
+        t.why === "early" ? i.ui.toast("Ещё рано — после 300 м", 2) : t.why === "pal" ? i.ui.toast("Сейчас идёт дворец — после него", 2) : t.why === "old" && i.ui.toast("У соперника старая версия игры — во дворец его не увести", 3)
+    }
+}
+const d = {
+    objs: [],
+    debris: null,
+    truck: null,
+    tmp: new Set
+}
+  , A = t => (i.scene.add(t),
+d.tmp.add(t),
+t)
+  , j = t => {
+    i.scene.remove(t),
+    d.tmp.delete(t)
+}
+  , w = new h.Vector3
+  , v = new h.Vector3
+  , H = new h.Matrix4
+  , nt = new h.Quaternion
+  , D = new h.Color
+  , V = new WeakMap;
+function yt(t) {
+    if (V.has(t))
+        return V.get(t);
+    const e = t.attributes.color
+      , n = [];
+    if (e) {
+        const s = e.count
+          , a = Math.max(1, Math.floor(s / 40));
+        for (let c = 0; c < s && n.length < 40; c += a)
+            D.setRGB(e.getX(c), e.getY(c), e.getZ(c)),
+            e.normalized === !1 && e.array instanceof Uint8Array && D.multiplyScalar(1 / 255),
+            n.push(D.convertSRGBToLinear().getHex())
+    }
+    return n.length || n.push(5933626),
+    V.set(t, n),
+    n
+}
+function St() {
+    if (d.debris)
+        return d.debris;
+    const t = 260
+      , e = new h.InstancedMesh(new h.BoxGeometry(1,1,1),new h.MeshStandardMaterial({
+        roughness: .8
+    }),t);
+    e.castShadow = !0,
+    e.frustumCulled = !1,
+    i.scene.add(e);
+    const n = Array.from({
+        length: t
+    }, () => ({
+        life: 0,
+        x: 0,
+        y: 0,
+        z: 0,
+        vx: 0,
+        vy: 0,
+        vz: 0,
+        s: 1,
+        r: new h.Vector3,
+        w: new h.Vector3
+    }));
+    for (let s = 0; s < t; s++)
+        H.makeScale(0, 0, 0),
+        e.setMatrixAt(s, H),
+        e.setColorAt(s, D.setHex(16777215));
+    return d.debris = {
+        im: e,
+        P: n,
+        next: 0
+    },
+    d.debris
+}
+function P(t, e, n, s, a, c, u) {
+    const f = St();
+    for (let x = 0; x < a; x++) {
+        const p = f.next = (f.next + 1) % f.P.length
+          , m = f.P[p]
+          , M = Math.random() * l.TAU;
+        Object.assign(m, {
+            life: 1.6 + Math.random() * .8,
+            x: t + (Math.random() - .5) * 4,
+            y: l.lerp(e, n, Math.random()),
+            z: (Math.random() - .5) * 4,
+            vx: (u || 0) * c * .6 + Math.cos(M) * c * (.3 + Math.random() * .7),
+            vy: c * (.4 + Math.random() * .9),
+            vz: Math.sin(M) * c * .6,
+            s: .45 + Math.random() * .9
+        }),
+        m.r.set(Math.random() * 6, Math.random() * 6, Math.random() * 6),
+        m.w.set((Math.random() - .5) * 18, (Math.random() - .5) * 18, (Math.random() - .5) * 18),
+        f.im.setColorAt(p, D.setHex(s[Math.floor(Math.random() * s.length)]))
+    }
+    f.im.instanceColor.needsUpdate = !0
+}
+function Gt(t) {
+    const e = d.debris;
+    if (!e)
+        return;
+    const n = r.state === "play" || r.state === "dead" ? r.speed : 0;
+    for (let s = 0; s < e.P.length; s++) {
+        const a = e.P[s];
+        if (a.life > 0) {
+            a.life -= t,
+            a.vy -= 90 * t,
+            a.x += (a.vx - n) * t,
+            a.y += a.vy * t,
+            a.z += a.vz * t,
+            a.r.addScaledVector(a.w, t);
+            const c = i.laneH(r.scroll + a.x) + a.s * .5;
+            a.y < c && (a.y = c,
+            a.vy *= -.3,
+            a.vx *= .6,
+            a.vz *= .6,
+            a.w.multiplyScalar(.6)),
+            nt.setFromEuler(new h.Euler(a.r.x,a.r.y,a.r.z));
+            const u = a.s * Math.min(1, a.life * 2);
+            H.compose(w.set(a.x, a.y, a.z), nt, v.set(u, u, u))
+        } else
+            H.makeScale(0, 0, 0);
+        e.im.setMatrixAt(s, H)
+    }
+    e.im.instanceMatrix.needsUpdate = !0
+}
+function W(t) {
+    let e = [];
+    for (const n of t.meshes)
+        e = e.concat(yt(n.m.geometry));
+    return e.length ? e : t.rig ? [2761264, 4864594, 1709086] : [5933626]
+}
+function k(t) {
+    return t.x + (t.x0 + t.x1) / 2
+}
+const z = t => b.obstacles.release(t);
+function Pt(t) {
+    const e = W(t)
+      , n = t.top || 6;
+    if (jt(k(t), n * .55),
+    P(k(t), n * .45, n * .6, e, 14, 12, .6),
+    t.rig) {
+        z(t),
+        P(k(t), t.bottom || 4, n, e, 30, 20, .3);
+        return
+    }
+    const s = t.meshes.map(a => ({
+        m: a.m,
+        y0: a.m.position.y,
+        dir: Math.random() < .5 ? 1 : -1
+    }));
+    d.objs.push({
+        t: 0,
+        step(a, c) {
+            const u = Math.min(1, c.t / .7);
+            for (const f of s)
+                f.m.rotation.z = f.dir * -1.25 * u * u,
+                f.m.position.y = f.y0 - n * .35 * u * u,
+                f.m.scale.y = 1 - .15 * u;
+            c.t > .7 && (c.done = !0,
+            P(k(t), .5, n * .6, e, 26, 18, .3),
+            z(t))
+        }
+    })
+}
+function zt(t) {
+    const e = st()
+      , n = W(t);
+    i.rig.arms[0].fore.getWorldPosition(w);
+    const s = w.x
+      , a = w.y + 1
+      , c = t.top || 6
+      , u = ((t.bottom || 0) + c) / 2;
+    d.objs.push({
+        t: 0,
+        step(f, x) {
+            const p = k(t)
+              , m = Math.min(1, x.t / Math.max(.15, (p - s) / 220));
+            e.position.set(l.lerp(s, p, m), l.lerp(a, u, m) + 6 * Math.sin(Math.PI * m), 0),
+            e.rotation.z -= f * 26,
+            m >= 1 && (j(e),
+            x.done = !0,
+            z(t),
+            P(p, t.bottom || .5, c, n, 60, 30, .9),
+            i.fx.burst(p, u, 0, 24, 30, !0),
+            lt())
+        }
+    })
+}
+function Lt(t) {
+    const e = t.top || 6
+      , n = W(t);
+    z(t),
+    P(k(t), .5, e, n, 50, 34, 1.2),
+    i.fx.explode(k(t), e * .5, 0, 13146720, 16773328),
+    r.shake = Math.max(r.shake, .4),
+    _t()
+}
+function Tt(t) {
+    t.rig && z(t);
+    const e = t.meshes.map(n => ({
+        m: n.m,
+        s0: n.m.scale.x
+    }));
+    d.objs.push({
+        t: 0,
+        step(n, s) {
+            const a = Math.min(1, s.t / .22);
+            for (const c of e)
+                c.m.scale.setScalar(c.s0 * (1 - a)),
+                c.m.position.y = 12 * a;
+            a >= 1 && (s.done = !0,
+            z(t))
+        }
+    }),
+    P(k(t), 8, 14, [16747044, 16765024, 9058832], 12, 10, -.5)
+}
+function jt(t, e) {
+    const n = new h.RingGeometry(6,8.5,24,1,-.4,2.2)
+      , s = new h.Mesh(n,new h.MeshBasicMaterial({
+        color: 16777215,
+        transparent: !0,
+        opacity: 1,
+        depthWrite: !1,
+        blending: h.AdditiveBlending,
+        side: h.DoubleSide,
+        fog: !1
+    }));
+    s.position.set(t - 2, e, 1.5),
+    s.rotation.z = -.6,
+    A(s),
+    d.objs.push({
+        t: 0,
+        step(a, c) {
+            s.position.x -= r.speed * a,
+            s.material.opacity = Math.max(0, 1 - c.t / .3),
+            s.rotation.z -= a * 3,
+            c.t > .3 && (j(s),
+            n.dispose(),
+            s.material.dispose(),
+            c.done = !0)
+        }
+    })
+}
+let F = null;
+function st() {
+    if (!F) {
+        const e = new l.Grid(-1.2,-1,-.5,1.2,15,.5,4);
+        e.sculpt( (n, s, a) => s < 3.2 ? Math.hypot(n, a) < .42 ? l.frac(s * 2.5) < .45 ? 1710622 : 2763312 : s > 2.9 && Math.abs(n) < .9 && Math.abs(a) < .3 ? 3816e3 : -1 : Math.abs(a) > .2 || s > 14.2 - Math.max(0, n) * 1.6 || n < -.55 || n > 1.05 ? -1 : n > .8 ? 15265012 : 11054776),
+        F = l.meshGrid(e, {
+            smooth: .3
+        })
+    }
+    const t = new h.Mesh(F,i.mats.stone);
+    return t.castShadow = !0,
+    t.scale.setScalar(1.2),
+    A(t)
+}
+function Ht() {
+    const t = new l.Grid(-3,0,-3,3,7.2,3,3);
+    return t.sculpt( (e, n, s) => {
+        const a = Math.hypot(e, s)
+          , c = 2.5 * Math.sqrt(Math.max(0, 1 - Math.pow((n - 2.6) / 2.8, 2))) + .15 * Math.sin(Math.atan2(s, e) * 7);
+        if (n < 5 && a < c)
+            return Math.abs(n - 4.3) < .3 ? 9071162 : l.mulc(l.mixc(9071162, 11569752, l.vnoise(e * 1.5, n * 1.5, s * 1.5)), l.frac(e * 2.5) < .5 != l.frac(n * 2.5) < .5 ? .9 : 1.04);
+        if (Math.hypot(e / 1.9, (n - 5.4) / 1.3, s / 1.7) < 1) {
+            const f = l.vnoise(e * 3, n * 3, s * 3);
+            return Math.abs(f - .5) < .08 ? 10107466 : l.mulc(15764122, .88 + .2 * f)
+        }
+        return -1
+    }
+    ),
+    l.meshGrid(t, {
+        smooth: .6
+    })
+}
+function Dt() {
+    const t = new l.Grid(-16,0,-6.5,17,15,6.5,1.5);
+    return t.sculpt( (e, n, s) => {
+        const a = Math.abs(s)
+          , c = u => l.mulc(l.mixc(u, 6961690, l.smooth(.45, .8, l.fbm3(e * .25, n * .25, s * .25, 3))), .85 + .25 * l.hash3(Math.floor(e), Math.floor(n), Math.floor(s)));
+        for (const u of [-10, 9]) {
+            const f = Math.hypot(e - u, n - 3);
+            if (f < 3 && a > 4 && a < 6.3)
+                return f < 1.2 ? 9079440 : 1315860
+        }
+        return n < 3 || n > 14 || a > 5.8 ? -1 : e > 13.6 && n < 7.5 ? Math.abs(l.frac(s / 1.4) - .5) < .12 ? 2763310 : 6974066 : e > 2 && e < 13.6 ? e > 8 && n > 9 ? -1 : e > 12.6 && Math.abs(a - 3.8) < .9 && Math.abs(n - 7.5) < .9 ? 16773792 | l.GLOW : e < 8 && n > 9.5 && n < 13 && e > 2.6 && e < 7.4 && a < 5.2 ? e > 7 || a > 4.8 ? 1714224 : -1 : c(3824186) : e > -15 && e <= 2 ? n < 5 ? c(3815994) : n < 9 && (a > 4.9 || e < -14.2) ? l.mulc(l.mixc(4862496, 6965804, l.vnoise(e * .3, n, s)), l.frac(n / 1.4) < .15 ? .6 : 1) : -1 : -1
+    }
+    ),
+    l.meshGlow(t, {
+        smooth: .4
+    })
+}
+function Et() {
+    if (d.truck)
+        return d.truck.leave = 0,
+        d.truck.x = -90,
+        d.truck;
+    const t = Dt()
+      , e = new h.Mesh(t,i.mats.stone);
+    return e.castShadow = !0,
+    e.receiveShadow = !0,
+    e.scale.setScalar(1.25),
+    t.userData.glow && e.add(new h.Mesh(t.userData.glow,i.mats.glow)),
+    i.scene.add(e),
+    e.visible = !1,
+    d.truck = {
+        m: e,
+        x: -90,
+        leave: 0
+    },
+    d.truck
+}
+function At(t) {
+    const e = d.truck;
+    if (!e || !e.m.visible)
+        return;
+    const n = o.act && o.act.id === "truck" ? o.act : null;
+    n ? e.x = n.x : e.leave > 0 && (e.leave += t,
+    e.x += 180 * t,
+    e.x > 400 && (e.m.visible = !1,
+    e.leave = 0)),
+    e.m.position.set(e.x + 8, i.laneH(r.scroll + e.x) - .2, 0),
+    e.m.rotation.z = .02 * Math.sin(performance.now() * .02),
+    n && Math.random() < .6 && i.dust.puff(e.x - 14, 1.5, 0, 2, .5, r.speed, 1.5)
+}
+function Bt(t) {
+    if (t.hwPump)
+        return t.hwPump;
+    const e = 5.6
+      , n = -.15
+      , s = p => {
+        const m = new l.Grid(-e - .6,-e - .6,-e - .6,e + .6,e + 1.6,e + .6,2.5);
+        return m.sculpt( (M, g, G) => {
+            if (p ? g < e * n : g >= e * n)
+                return -1;
+            const I = Math.atan2(G, M)
+              , R = 1 + .06 * Math.cos(I * 8)
+              , Y = Math.hypot(M / (e * R), g / (e * .85), G / (e * R));
+            if (p && Math.hypot(M + .6 - (g - e) * .3, G) < .6 && g > e * .8 && g < e + 1.4)
+                return 5074476;
+            if (Y > 1)
+                return -1;
+            if (Y < .82)
+                return p ? 16751146 : 13656080;
+            if (p && M > e * .35) {
+                const U = g / e
+                  , Z = G / e;
+                for (const q of [-1, 1])
+                    if (Math.abs(Z - q * .38) < .17 && U > .12 && U < .45 - Math.abs(Z - q * .38))
+                        return 16765024 | l.GLOW
+            }
+            return Math.abs(g - e * n) < .8 && M > e * .3 && l.frac(G * .9) < .5 ? 16773312 : l.mulc(l.mixc(10831887, 15103004, l.smooth(-.6, .5, Math.cos(I * 8))), .9 + .2 * l.vnoise(M, g, G))
+        }
+        ),
+        l.meshGlow(m, {
+            smooth: .45
+        })
+    }
+      , a = new h.Group
+      , c = new h.Mesh(s(!0),t.chest.children[0].material)
+      , u = new h.Group
+      , f = new h.Mesh(s(!1),t.chest.children[0].material);
+    for (const p of [c, f])
+        p.castShadow = !0,
+        p.geometry.userData.glow && p.add(new h.Mesh(p.geometry.userData.glow,i.mats.glow));
+    u.position.set(-e * .6, e * n, 0),
+    f.position.set(e * .6, -e * n, 0),
+    u.add(f),
+    a.add(c, u),
+    a.position.set(2.8, 3.9, 0),
+    a.visible = !1,
+    t.head.add(a);
+    const x = {
+        grp: a,
+        jawG: u,
+        t: 0,
+        set(p) {
+            a.visible = p;
+            const m = t.head.children[0];
+            m && m.isMesh && (m.visible = !p);
+            const M = t.jaw.children[0];
+            M && M.isMesh && (M.visible = !p)
+        }
+    };
+    return t.hwPump = x,
+    x
+}
+function Ot(t) {
+    const e = i.rig.hwPump;
+    if (!e || !e.grp.visible)
+        return;
+    e.t += t;
+    const n = .5 + .5 * Math.sin(e.t * 14);
+    e.jawG.rotation.z = -.15 - .75 * n,
+    e.grp.scale.setScalar(1.25 + .05 * Math.sin(e.t * 7))
+}
+let y = null;
+function at(t, e) {
+    y || (y = l.sculptPumpkin({
+        res: 2.5,
+        r: 4.6,
+        seed: 5,
+        carved: !0,
+        face: 2
+    }));
+    let n = t.hwHeadPump;
+    n || (n = t.hwHeadPump = new h.Mesh(y,i.mats.skin),
+    n.castShadow = !0,
+    y.userData.glow && n.add(new h.Mesh(y.userData.glow,i.mats.glow)),
+    n.position.set(2.5, .6, 0),
+    n.rotation.set(0, -Math.PI / 2, 0),
+    t.head.add(n)),
+    n.visible = !0,
+    n.userData.t = e,
+    n.scale.setScalar(.01)
+}
+function Vt(t) {
+    for (const e of [i.rig, i.rig2]) {
+        const n = e.hwHeadPump;
+        if (!n || !n.visible)
+            continue;
+        n.userData.t -= t;
+        const s = n.userData.t > 0 ? Math.min(1, n.scale.x + t * 6) : Math.max(0, n.scale.x - t * 4);
+        n.scale.setScalar(s),
+        n.userData.t <= 0 && s <= .01 && (n.visible = !1)
+    }
+}
+let S = null
+  , L = 0;
+function it(t) {
+    if (!S) {
+        S = document.createElement("div"),
+        S.className = "hw-pumpov",
+        S.setAttribute("aria-hidden", "true"),
+        S.innerHTML = '<svg viewBox="0 0 100 100" preserveAspectRatio="none"><defs><radialGradient id="hwpg" cx="50%" cy="45%" r="70%"><stop offset="0" stop-color="#ff9a2a"/><stop offset=".6" stop-color="#b8480c"/><stop offset="1" stop-color="#3a1204"/></radialGradient></defs><path fill="url(#hwpg)" fill-rule="evenodd" d="M0 0H100V100H0Z M22 22 L36 22 L29 38Z M64 22 L78 22 L71 38Z M46 40 L54 40 L50 48Z M12 58 Q50 92 88 58 L80 62 L74 56 L66 66 L58 58 L50 68 L42 58 L34 66 L26 56 L20 62Z"/></svg><i></i><i></i><i></i><i></i><i></i><i></i>';
+        const e = document.createElement("style");
+        e.textContent = ".hw-pumpov{position:fixed;inset:0;z-index:4;pointer-events:none;opacity:0;transition:opacity .35s}.hw-pumpov.on{opacity:.92}.hw-pumpov svg{position:absolute;inset:0;width:100%;height:100%}.hw-pumpov i{position:absolute;top:-12%;width:3.2vmin;height:14vmin;border-radius:0 0 50% 50%;background:linear-gradient(#ffb04a,#e0600a);opacity:.85;animation:hwDrip 2.4s ease-in infinite}.hw-pumpov i:nth-of-type(1){left:14%;animation-delay:-.3s}.hw-pumpov i:nth-of-type(2){left:31%;animation-delay:-1.1s;width:2.4vmin}.hw-pumpov i:nth-of-type(3){left:47%;animation-delay:-1.8s}.hw-pumpov i:nth-of-type(4){left:61%;animation-delay:-.7s;width:2.2vmin}.hw-pumpov i:nth-of-type(5){left:77%;animation-delay:-1.5s}.hw-pumpov i:nth-of-type(6){left:90%;animation-delay:-2.1s;width:2.6vmin}@keyframes hwDrip{0%{transform:translateY(0) scaleY(.4)}70%{transform:translateY(80vh) scaleY(1.2)}100%{transform:translateY(112vh) scaleY(.6);opacity:0}}",
+        document.head.append(e),
+        document.body.append(S)
+    }
+    L = t / 1e3,
+    S.classList.toggle("on", L > 0)
+}
+let _ = null
+  , C = null;
+function Wt() {
+    if (_)
+        return;
+    const t = new l.Grid(-2.2,-1,-1.2,2.6,2.6,1.2,3);
+    l.stampCrow(t, 0, 0, 0, 1),
+    _ = l.meshGrid(t, {
+        smooth: .4
+    });
+    const e = new l.Grid(0,-.3,-.4,4.2,.3,1.8,3);
+    e.sculpt( (n, s, a) => a < 1.6 - n * .3 && a > -.3 ? l.frac(n * 1.4) < .2 ? 2236970 : 1315866 : -1),
+    C = l.meshGrid(e, {
+        smooth: .3
+    })
+}
+function ot(t, e) {
+    Wt();
+    const n = [];
+    for (let s = 0; s < 5; s++) {
+        const a = new h.Group
+          , c = new h.Mesh(_,i.mats.skin)
+          , u = new h.Mesh(C,i.mats.skin)
+          , f = new h.Mesh(C,i.mats.skin);
+        f.scale.z = -1,
+        a.add(c, u, f),
+        a.scale.setScalar(1.6),
+        A(a),
+        n.push({
+            c: a,
+            wl: u,
+            wr: f,
+            ph: s * 1.3,
+            sx: -60 - s * 8,
+            sy: 40 + s * 4,
+            ox: (s - 2) * 3.2,
+            oy: 14 + s % 2 * 3
+        })
+    }
+    d.objs.push({
+        t: 0,
+        step(s, a) {
+            t.root.getWorldPosition(w);
+            const c = Math.min(1, a.t / .6)
+              , u = a.t > 1.6 ? (a.t - 1.6) / .8 : 0;
+            if (n.forEach(f => {
+                const x = w.x + f.ox
+                  , p = w.y + f.oy
+                  , m = w.z + f.ox * .4;
+                f.c.position.set(l.lerp(w.x + f.sx, x, c) + u * 120, l.lerp(f.sy, p, c) + u * 60, m);
+                const M = Math.sin(a.t * 22 + f.ph);
+                f.wl.rotation.x = -.6 * M,
+                f.wr.rotation.x = .6 * M,
+                f.c.rotation.y = Math.PI
+            }
+            ),
+            u >= 1) {
+                for (const f of n)
+                    j(f.c);
+                a.done = !0
+            }
+        }
+    })
+}
+function rt(t, e) {
+    const n = e ? i.rig : i.rig2
+      , s = e ? i.rig2 : i.rig;
+    if (t === "bat") {
+        n.hwBat = .001,
+        r.sfx.whoosh(.3, !0);
+        return
+    }
+    if (t === "machete") {
+        n.hwThrow = .8;
+        const a = st();
+        d.objs.push({
+            t: 0,
+            step(c, u) {
+                n.root.getWorldPosition(w),
+                s.head.getWorldPosition(v);
+                const f = Math.min(1, u.t / .45);
+                a.position.set(l.lerp(w.x + 6, v.x, f), l.lerp(w.y + 14, v.y, f) + 5 * Math.sin(Math.PI * f), l.lerp(w.z, v.z, f)),
+                a.rotation.z -= c * 28,
+                f >= 1 && (j(a),
+                u.done = !0,
+                lt())
+            }
+        }),
+        ct();
+        return
+    }
+    if (t === "pumpkin") {
+        y || (y = l.sculptPumpkin({
+            res: 2.5,
+            r: 4.6,
+            seed: 5,
+            carved: !0,
+            face: 2
+        }));
+        const a = A(new h.Mesh(y,i.mats.skin));
+        d.objs.push({
+            t: 0,
+            step(c, u) {
+                n.root.getWorldPosition(w),
+                s.head.getWorldPosition(v);
+                const f = Math.min(1, u.t / .6);
+                a.position.set(l.lerp(w.x + 6, v.x, f), l.lerp(w.y + 16, v.y + 3, f) + 14 * Math.sin(Math.PI * f), l.lerp(w.z, v.z, f)),
+                a.rotation.x += c * 9,
+                f >= 1 && (j(a),
+                u.done = !0)
+            }
+        }),
+        r.sfx.whoosh(.5, !0);
+        return
+    }
+    t === "crows" && e && ut()
+}
+export function frame(t) {
+    r.paused && (t = 0);
+    for (const e of d.objs)
+        e.done || (e.t += t,
+        e.step(t, e));
+    (d.objs.length > 40 || d.objs.some(e => e.done)) && (d.objs = d.objs.filter(e => !e.done)),
+    Gt(t),
+    At(t),
+    Ot(t),
+    Vt(t),
+    L > 0 && (L -= t,
+    (L <= 0 || r.state !== "play") && (L = 0,
+    S.classList.remove("on")));
+    for (const e of [i.rig, i.rig2]) {
+        const n = e.hwg && e.hwg.maniac;
+        if (n) {
+            if (e.hwSwing > 0) {
+                e.hwSwing += t * 3;
+                const s = Math.min(1, e.hwSwing);
+                n.ang = 3.55 - 3.2 * Math.sin(Math.PI * s),
+                e.hwSwing >= 1 && (e.hwSwing = 0,
+                n.ang = 3.55)
+            }
+            e.hwThrow > 0 && (e.hwThrow -= t,
+            n.hold.visible = e.hwThrow <= 0 && e.skin === "maniac")
+        }
+    }
+}
+function Ft() {
+    const t = r.sfx;
+    t.ctx && (t.noise(.22, "highpass", 3e3, 8e3, 1.2, .22, .3, .3),
+    t.tone("sine", 140, 60, .18, .25, 0, .2, {
+        delay: .05
+    }),
+    t.noise(.4, "lowpass", 1800, 200, .7, .14, 0, .3, {
+        delay: .1
+    }))
+}
+function ct() {
+    const t = r.sfx;
+    if (t.ctx)
+        for (let e = 0; e < 4; e++)
+            t.noise(.08, "bandpass", 2400, 1600, 2, .08, .2 + e * .15, .3, {
+                delay: e * .08
+            })
+}
+function lt() {
+    const t = r.sfx;
+    if (t.ctx) {
+        t.noise(.5, "lowpass", 2600, 160, .7, .32, .4, .4, {
+            brown: !0
+        }),
+        t.tone("square", 220, 70, .2, .06, .4, .3);
+        for (let e = 0; e < 6; e++)
+            t.noise(.05, "bandpass", 1500 + Math.random() * 2500, 1e3, 3, .05, Math.random() - .5, .3, {
+                delay: .05 + e * .05
+            })
+    }
+}
+function _t() {
+    const t = r.sfx;
+    t.ctx && (t.boom(),
+    t.noise(.3, "bandpass", 900, 300, 1, .2, .3, .3))
+}
+function Ct() {
+    const t = r.sfx;
+    t.ctx && (t.tone("sawtooth", 55, 95, .9, .08, -.6, .3, {
+        attack: .1
+    }),
+    t.tone("square", 392, 392, .22, .05, 0, .3, {
+        delay: .5
+    }),
+    t.tone("square", 330, 330, .3, .05, 0, .3, {
+        delay: .75
+    }),
+    t.growl(70, .8, .1, 1.4))
+}
+function ft(t) {
+    const e = r.sfx;
+    e.ctx && (e.noise(.14, "lowpass", 1200, 300, 1, .25, 0, .2),
+    e.tone("sine", 160 + t * 30, 80, .12, .25, 0, .2),
+    t && e.bell(660 + t * 120, .06, .4, 0, .05))
+}
+function It() {
+    const t = r.sfx;
+    t.ctx && (t.noise(.45, "lowpass", 1400, 180, .8, .35, 0, .3, {
+        brown: !0
+    }),
+    t.tone("sine", 120, 50, .3, .3, 0, .2))
+}
+function ut() {
+    const t = r.sfx;
+    t.ctx && (t.caw(),
+    setTimeout( () => t.caw(), 220),
+    t.flapBy(.6))
+}
