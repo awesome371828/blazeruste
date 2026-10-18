@@ -1,0 +1,252 @@
+( () => {
+    "use strict";
+    const y = "https://yandex.ru/ads/system/context.js"
+      , u = t => {
+        try {
+            return window[t]
+        } catch {
+            return null
+        }
+    }
+      , l = u("localStorage")
+      , a = u("sessionStorage")
+      , d = t => typeof t == "string" && /^R-A-\d+-\d+$/.test(t);
+    let n;
+    function m() {
+        return window.Ya?.Context?.AdvManager ? Promise.resolve(window.Ya.Context.AdvManager) : n || (n = new Promise( (t, i) => {
+            let e = !1;
+            const s = document.createElement("script")
+              , h = c => {
+                e || (e = !0,
+                clearTimeout(w),
+                c ? (s.remove(),
+                n = null,
+                i(c)) : t(window.Ya.Context.AdvManager))
+            }
+              , w = setTimeout( () => h(new Error("Реклама не загрузилась. Попробуйте позже.")), 12e3);
+            window.yaContextCb = window.yaContextCb || [],
+            window.yaContextCb.push( () => h(window.Ya?.Context?.AdvManager ? null : new Error("Реклама недоступна."))),
+            s.src = y,
+            s.async = !0,
+            s.onerror = () => h(new Error("Реклама недоступна. Проверьте соединение или попробуйте позже.")),
+            document.head.append(s)
+        }
+        ),
+        n)
+    }
+    window.DinoRewarded = class {
+        constructor(t) {
+            Object.assign(this, t),
+            this.busy = !1,
+            this.config = null,
+            this.nextAt = 0,
+            this.pendingKey = "dino3d.rewarded.pending." + this.userKey,
+            this.localKey = "dino3d.rewarded.local",
+            this.pending = this.read(a, this.pendingKey, null),
+            this.buttons = [...document.querySelectorAll("[data-rewarded-button]")],
+            this.messages = [...document.querySelectorAll("[data-rewarded-status]")],
+            this.buttons.forEach(i => i.addEventListener("click", () => this.show())),
+            this.message("Реклама пока недоступна. Можно играть без неё."),
+            this.refresh(),
+            this.init()
+        }
+        read(t, i, e) {
+            try {
+                return JSON.parse(t.getItem(i)) || e
+            } catch {
+                return e
+            }
+        }
+        write(t, i, e) {
+            try {
+                e === null ? t.removeItem(i) : t.setItem(i, JSON.stringify(e))
+            } catch {}
+        }
+        async init() {
+            try {
+                const t = await fetch("/rewarded-config.json", {
+                    cache: "no-store",
+                    signal: AbortSignal.timeout(1e4)
+                });
+                if (!t.ok)
+                    throw new Error("config");
+                this.config = await t.json(),
+                this.available() && this.message("За полный просмотр — 25 игровых монет. Их можно потратить в магазине.")
+            } catch {}
+            this.pending && this.message("Осталось получить монеты за завершённый просмотр. Нажмите кнопку."),
+            this.refresh()
+        }
+        available() {
+            return this.config?.enabled === !0 && (d(this.config.desktopBlockId) || d(this.config.touchBlockId))
+        }
+        message(t) {
+            this.messages.forEach(i => {
+                i.textContent = t
+            }
+            )
+        }
+        refresh() {
+            const t = Date.now() < this.nextAt && !this.pending;
+            this.buttons.forEach(i => {
+                i.disabled = this.busy || !this.available() && !this.pending || t,
+                i.textContent = this.busy ? "Подождите…" : this.pending ? "Получить монеты за просмотр" : "Смотреть рекламу · +25 монет"
+            }
+            )
+        }
+        setBusy(t) {
+            this.busy = t,
+            this.onBusy(t),
+            this.refresh()
+        }
+        setCooldown(t) {
+            this.nextAt = t || 0,
+            clearTimeout(this.cooldownTimer),
+            this.nextAt > Date.now() && (this.cooldownTimer = setTimeout( () => {
+                this.nextAt = 0,
+                this.refresh(),
+                this.message("Можно посмотреть рекламу и получить ещё 25 монет.")
+            }
+            , this.nextAt - Date.now()))
+        }
+        async api(t, i) {
+            try {
+                const e = await fetch("/api/rewarded/" + t, {
+                    method: "POST",
+                    headers: this.headers,
+                    body: JSON.stringify(i),
+                    signal: AbortSignal.timeout(12e3)
+                });
+                return e.status >= 500 ? null : await e.json()
+            } catch {
+                return null
+            }
+        }
+        async reserve() {
+            if (this.hasServer) {
+                if (this.profile.online || await this.profile.sync(),
+                !this.profile.online)
+                    throw new Error("Не удалось загрузить профиль. Откройте игру из Telegram заново.");
+                const e = await this.api("start", {});
+                if (!e?.ok)
+                    throw this.setCooldown(e?.nextAt),
+                    new Error(e?.error || "Нет связи с сервером. Попробуйте позже.");
+                return e.ticket
+            }
+            const t = this.read(l, this.localKey, {})
+              , i = new Date().toISOString().slice(0, 10);
+            if (t.day === i && t.count >= this.config.dailyLimit)
+                throw new Error("Награды за рекламу на сегодня закончились. Возвращайтесь завтра.");
+            if (Date.now() < (t.nextAt || 0))
+                throw this.setCooldown(t.nextAt),
+                new Error("Следующий просмотр доступен чуть позже.");
+            return crypto.randomUUID()
+        }
+        async claim() {
+            const t = this.pending?.ticket;
+            if (!t)
+                return;
+            let i;
+            if (this.hasServer)
+                i = await this.api("claim", {
+                    ticket: t
+                });
+            else {
+                const e = this.read(l, this.localKey, {})
+                  , s = new Date().toISOString().slice(0, 10);
+                e.receipt !== t && (this.profile.coins += this.pending.coins,
+                this.profile.keep(),
+                e.count = (e.day === s && e.count || 0) + 1,
+                e.day = s,
+                e.receipt = t,
+                e.nextAt = Date.now() + (this.config?.cooldownSeconds || 60) * 1e3,
+                this.write(l, this.localKey, e)),
+                i = {
+                    ok: !0,
+                    gain: this.pending.coins,
+                    nextAt: e.nextAt
+                }
+            }
+            if (!i)
+                throw new Error("Просмотр завершён, но нет связи с сервером. Нажмите «Получить монеты за просмотр» — повторная реклама не нужна.");
+            if (!i.ok)
+                throw this.pending = null,
+                this.write(a, this.pendingKey, null),
+                new Error(i.error || "Не удалось получить награду.");
+            this.hasServer && (this.profile.coins = i.coins,
+            this.profile.keep()),
+            this.pending = null,
+            this.write(a, this.pendingKey, null),
+            this.setCooldown(i.nextAt),
+            this.message("Получено " + i.gain + " монет! Следующий просмотр — через минуту.")
+        }
+        async show() {
+            if (!(this.busy || !this.canShow() || !this.available() && !this.pending)) {
+                this.setBusy(!0);
+                try {
+                    if (this.pending) {
+                        await this.claim();
+                        return
+                    }
+                    this.message("Загружаем рекламу…");
+                    const t = await m()
+                      , i = t.getPlatform() === "desktop" ? "desktop" : "touch"
+                      , e = this.config[i + "BlockId"];
+                    if (!d(e))
+                        throw new Error("Реклама для этого устройства пока недоступна.");
+                    const s = await this.reserve();
+                    if (!this.canShow() || document.hidden)
+                        throw new Error("Просмотр отменён. Вернитесь в меню и попробуйте снова.");
+                    if (!await new Promise( (w, c) => {
+                        let f = !1;
+                        const r = (o, g) => {
+                            f || (f = !0,
+                            clearTimeout(p),
+                            g ? c(g) : w(o))
+                        }
+                          , p = setTimeout( () => {
+                            try {
+                                t.destroy({
+                                    blockId: e
+                                })
+                            } catch {}
+                            r(!1, new Error("Реклама не ответила. Попробуйте позже."))
+                        }
+                        , 18e4);
+                        try {
+                            t.render({
+                                blockId: e,
+                                type: "rewarded",
+                                platform: i,
+                                onRewarded: o => r(o === !0),
+                                onError: o => {
+                                    o?.type !== "warning" && r(!1, new Error("Реклама сейчас недоступна. Монеты не начислены."))
+                                }
+                                ,
+                                onRender: () => {
+                                    this.message("Идёт реклама. Дождитесь окончания просмотра.")
+                                }
+                            }, () => r(!1, new Error("Сейчас нет подходящей рекламы. Попробуйте позже.")))
+                        } catch {
+                            r(!1, new Error("Не удалось открыть рекламу. Попробуйте позже."))
+                        }
+                    }
+                    )) {
+                        this.message("Просмотр не завершён. Монеты не начислены.");
+                        return
+                    }
+                    this.pending = {
+                        ticket: s,
+                        coins: this.config.coins
+                    },
+                    this.write(a, this.pendingKey, this.pending),
+                    await this.claim()
+                } catch (t) {
+                    this.message(t.message)
+                } finally {
+                    this.setBusy(!1)
+                }
+            }
+        }
+    }
+}
+)();
