@@ -1,0 +1,2052 @@
+let A = null
+  , e = null
+  , v = globalThis.THREE;
+const C = 1600
+  , J = -560
+  , K = t => (t -= J,
+t - Math.floor(t / C) * C + J)
+  , z = Math.PI * 2
+  , U = [{
+    b: 5,
+    key: "camp",
+    skin: "maniac",
+    name: "Лагерь у озера",
+    c: "#5ab8ff",
+    night: .92,
+    build: H0
+}, {
+    b: 6,
+    key: "corn",
+    skin: "maniac",
+    name: "Кукурузное поле",
+    c: "#e8c040",
+    night: .9,
+    build: rt
+}, {
+    b: 7,
+    key: "yard",
+    skin: "zombie",
+    name: "Огород",
+    c: "#7deb6a",
+    night: .82,
+    build: at
+}, {
+    b: 8,
+    key: "farm",
+    skin: "scarecrow",
+    name: "Ферма",
+    c: "#ff9a2a",
+    night: .88,
+    build: et
+}]
+  , w0 = {
+    maniac: "Маньяк",
+    zombie: "Зомби",
+    scarecrow: "Пугало"
+}
+  , Y = t => U.find(r => r.b === t)
+  , _ = {};
+let E = null;
+export function init(t) {
+    A = t,
+    e = t.lib,
+    v = t.THREE || v;
+    for (const r of U)
+        A.MAPS[r.b] = {
+            name: r.name,
+            c: r.c,
+            lock: "Карта «" + r.name + "» — у скина «" + w0[r.skin] + "» (кейс в Хэллоуинском соборе)"
+        };
+    return {
+        ids: U.map(r => r.b),
+        open: y0,
+        ready: k0,
+        want: B0,
+        now: t0,
+        update: z0,
+        hide: A0,
+        night: r => (Y(r) || {}).night || .88,
+        get shown() {
+            return !!E
+        }
+    }
+}
+function y0(t) {
+    const r = Y(t);
+    return !!r && (A.profile.owned.includes(r.skin) || !!A.dev)
+}
+function k0(t) {
+    return !!(_[t] && _[t].done)
+}
+function $(t) {
+    const r = Y(t);
+    if (!r)
+        return null;
+    const a = _[t] || (_[t] = {
+        b: t,
+        done: !1,
+        kinds: [],
+        tiles: [],
+        frames: []
+    });
+    return a.it || (a.it = r.build(a)),
+    a
+}
+function B0(t) {
+    const r = $(t);
+    if (!r || r.done || r.pump)
+        return;
+    r.pump = !0;
+    const a = () => {
+        if (r.done) {
+            r.pump = !1;
+            return
+        }
+        let c;
+        try {
+            c = r.it.next()
+        } catch (s) {
+            console.error("мир", t, s),
+            r.done = !0,
+            r.pump = !1;
+            return
+        }
+        if (c.done) {
+            r.done = !0,
+            r.pump = !1,
+            A.onReady && A.onReady(t);
+            return
+        }
+        setTimeout(a, 0)
+    }
+    ;
+    setTimeout(a, 0)
+}
+function t0(t) {
+    const r = $(t);
+    if (r)
+        for (; !r.done; ) {
+            let a;
+            try {
+                a = r.it.next()
+            } catch (c) {
+                console.error("мир", t, c),
+                a = {
+                    done: !0
+                }
+            }
+            a.done && (r.done = !0)
+        }
+}
+const r0 = new v.Matrix4
+  , a0 = new v.Quaternion
+  , e0 = new v.Euler
+  , o0 = new v.Vector3
+  , n0 = new v.Vector3;
+function z0(t, r) {
+    const a = _[r];
+    (!a || !a.done) && t0(r);
+    const c = _[r];
+    if (!c)
+        return;
+    E && E !== c && (E.root.visible = !1),
+    E = c,
+    c.root.visible = !0;
+    const s = A.game.time
+      , o = A.game.scroll
+      , n = A.camera.position.x + 40
+      , u = K(-o);
+    c.tiles.forEach( (i, l) => {
+        i.position.x = u + (l - 1) * C
+    }
+    );
+    for (const i of c.kinds) {
+        let l = 0;
+        for (const m of i.items) {
+            const x = K(m.x - o)
+              , d = 170 + .6 * Math.max(0, -m.z) + .5 * Math.max(0, m.z);
+            if (x < n - d || x > n + d)
+                continue;
+            const g = i.anim ? i.anim(m, s) : null
+              , f = m.s || 1;
+            e0.set(g && g.rx || m.rx || 0, g && g.ry !== void 0 ? g.ry : m.ry || 0, g && g.rz || m.rz || 0),
+            a0.setFromEuler(e0),
+            o0.set(x + (g && g.dx || 0), m.y + (g && g.dy || 0), m.z + (g && g.dz || 0)),
+            n0.set(f * (m.sx || 1), f * (g && g.sy || m.sy || 1), f * (m.sz || 1)),
+            r0.compose(o0, a0, n0),
+            i.im.setMatrixAt(l++, r0)
+        }
+        i.im.count = l,
+        i.gm && (i.gm.count = l),
+        i.im.instanceMatrix.needsUpdate = !0
+    }
+    for (const i of c.frames)
+        i(t, s, o, u)
+}
+function A0() {
+    E && (E.root.visible = !1,
+    E = null)
+}
+function P(t, r, a, c) {
+    const s = t / C * z
+      , o = C * a / z;
+    return e.vnoise(Math.cos(s) * o + (c || 0), Math.sin(s) * o, r * a)
+}
+function H(t, r, a) {
+    return r > -150 ? 0 : e.smooth(-150, -480, r) * (a || 34) * (.3 + .7 * P(t, r, .005, 7))
+}
+function N(t, r, a, c) {
+    const s = []
+      , o = [];
+    for (let f = 0; f <= C; f += 8)
+        s.push(f);
+    for (let f = 90; f > -64; f -= 2.5)
+        o.push(f);
+    for (let f = -64; f > -230; f -= 6)
+        o.push(f);
+    for (let f = -230; f >= -1e3; f -= 22)
+        o.push(f);
+    const n = s.length
+      , u = o.length
+      , i = new Float32Array(n * u * 3)
+      , l = new Float32Array(n * u * 3)
+      , m = new Float32Array(n * u * 2)
+      , x = [];
+    for (let f = 0; f < u; f++)
+        for (let M = 0; M < n; M++) {
+            const h = f * n + M
+              , p = s[M]
+              , G = o[f]
+              , w = r(p, G);
+            i[h * 3] = p,
+            i[h * 3 + 1] = a(p, G),
+            i[h * 3 + 2] = G,
+            l[h * 3] = (w >> 16 & 255) / 255,
+            l[h * 3 + 1] = (w >> 8 & 255) / 255,
+            l[h * 3 + 2] = (w & 255) / 255,
+            m[h * 2] = p / 7,
+            m[h * 2 + 1] = G / 7
+        }
+    for (let f = 0; f < u - 1; f++)
+        for (let M = 0; M < n - 1; M++) {
+            const h = f * n + M
+              , p = h + 1
+              , G = h + n
+              , w = G + 1;
+            x.push(h, p, G, p, w, G)
+        }
+    const d = new v.BufferGeometry;
+    d.setAttribute("position", new v.BufferAttribute(i,3)),
+    d.setAttribute("color", new v.BufferAttribute(l,3)),
+    d.setAttribute("uv", new v.BufferAttribute(m,2)),
+    d.setIndex(x),
+    d.computeVertexNormals();
+    const g = s0();
+    for (let f = 0; f < 3; f++) {
+        const M = new v.Group
+          , h = new v.Mesh(d,g);
+        h.receiveShadow = !0,
+        M.add(h),
+        c && c(M),
+        t.root.add(M),
+        t.tiles.push(M)
+    }
+}
+let R = null;
+function s0() {
+    if (R)
+        return R;
+    const t = 256
+      , r = document.createElement("canvas");
+    r.width = r.height = t;
+    const a = r.getContext("2d")
+      , c = a.createImageData(t, t)
+      , s = (n, u, i) => {
+        const l = n / t * z
+          , m = u / t * z
+          , x = i * t / z;
+        return e.vnoise(Math.cos(l) * x, Math.sin(l) * x + Math.cos(m) * x * .7, Math.sin(m) * x)
+    }
+    ;
+    for (let n = 0; n < t; n++)
+        for (let u = 0; u < t; u++) {
+            const i = .78 + .16 * s(u, n, .05) + .1 * s(u, n, .2) + .08 * e.hash3(u, n, 3)
+              , l = (n * t + u) * 4;
+            c.data[l] = c.data[l + 1] = c.data[l + 2] = Math.min(255, i * 240),
+            c.data[l + 3] = 255
+        }
+    a.putImageData(c, 0, 0);
+    const o = new v.CanvasTexture(r);
+    return o.wrapS = o.wrapT = v.RepeatWrapping,
+    o.anisotropy = 4,
+    R = new v.MeshStandardMaterial({
+        vertexColors: !0,
+        map: o,
+        roughness: .95,
+        metalness: 0,
+        envMapIntensity: .4
+    }),
+    R.onBeforeCompile = n => {
+        A.patchFog(n),
+        n.vertexShader = n.vertexShader.replace("#include <color_vertex>", `#include <color_vertex>
+ vColor.rgb = pow(vColor.rgb, vec3(2.2));`)
+    }
+    ,
+    R.customProgramCacheKey = () => "hwground",
+    R
+}
+function I(t, r, a, c, s, o, n) {
+    const u = e.mulberry32(o)
+      , i = []
+      , l = []
+      , m = []
+      , [x,d,g] = q(s)
+      , f = .55
+      , M = (p, G, w) => {
+        i.push(p, G, r),
+        l.push(x * w, d * w, g * w),
+        m.push(p / 7, G / 7)
+    }
+    ;
+    n = n || 11;
+    for (let p = 0; p < C; p += n * (.7 + u() * .6)) {
+        const G = n * (1.1 + u() * .6)
+          , w = p + G / 2
+          , B = (t.h ? t.h(w, r) : 0) - 2
+          , L = B + e.lerp(a, c, u());
+        M(w - G / 2, B, f),
+        M(w + G / 2, B, f),
+        M(w, L, 1),
+        M(w - G / 2, B - 30, f * .8),
+        M(w + G / 2, B - 30, f * .8),
+        M(w + G / 2, B, f),
+        M(w - G / 2, B - 30, f * .8),
+        M(w + G / 2, B, f),
+        M(w - G / 2, B, f)
+    }
+    const h = new v.BufferGeometry;
+    h.setAttribute("position", new v.Float32BufferAttribute(i,3)),
+    h.setAttribute("color", new v.Float32BufferAttribute(l,3)),
+    h.setAttribute("uv", new v.Float32BufferAttribute(m,2)),
+    h.computeVertexNormals();
+    for (const p of t.tiles)
+        p.add(new v.Mesh(h,s0()))
+}
+function b(t, r, a, c, s) {
+    s = s || {};
+    const o = new v.InstancedMesh(r,A.mats[a] || a,Math.max(1, c.length));
+    o.frustumCulled = !1,
+    o.castShadow = !!s.cast,
+    o.receiveShadow = !0,
+    o.count = 0,
+    o.instanceMatrix.setUsage(v.DynamicDrawUsage),
+    t.root.add(o);
+    let n = null;
+    r.userData.glow && (n = new v.InstancedMesh(r.userData.glow,A.mats.glow,Math.max(1, c.length)),
+    n.frustumCulled = !1,
+    n.instanceMatrix = o.instanceMatrix,
+    n.count = 0,
+    t.root.add(n));
+    for (const u of c)
+        u.y === void 0 && (u.y = t.h ? t.h(u.x, u.z) : 0);
+    t.kinds.push({
+        im: o,
+        gm: n,
+        items: c,
+        anim: s.anim
+    })
+}
+function k(t, r, a, c, s, o) {
+    const n = [];
+    o = o || {};
+    for (let u = 0, i = 0; u < r && i < r * 30; i++) {
+        const l = t() * C
+          , m = e.lerp(a, c, t());
+        s && s(l, m) || (n.push(Object.assign({
+            x: l,
+            z: m,
+            ry: t() * z,
+            s: e.lerp(o.s0 || .85, o.s1 || 1.2, t())
+        }, o.extra ? o.extra(t) : null)),
+        u++)
+    }
+    return n
+}
+const q = t => [(t >> 16 & 255) / 255, (t >> 8 & 255) / 255, (t & 255) / 255];
+function O(t, r, a, c, s, o, n) {
+    const u = e.mulberry32(n || 5)
+      , i = []
+      , l = new Float32Array(r * 3);
+    for (let f = 0; f < r; f++)
+        i.push([u() * C, e.lerp(c[0], c[1], u()), e.lerp(a[0], a[1], u()), u() * z]);
+    const m = new v.BufferGeometry;
+    m.setAttribute("position", new v.BufferAttribute(l,3));
+    const x = ( () => {
+        const f = document.createElement("canvas");
+        f.width = f.height = 32;
+        const M = f.getContext("2d")
+          , h = M.createRadialGradient(16, 16, 0, 16, 16, 16);
+        return h.addColorStop(0, "rgba(255,255,255,1)"),
+        h.addColorStop(.3, "rgba(255,255,255,.55)"),
+        h.addColorStop(1, "rgba(255,255,255,0)"),
+        M.fillStyle = h,
+        M.fillRect(0, 0, 32, 32),
+        new v.CanvasTexture(f)
+    }
+    )()
+      , d = new v.PointsMaterial({
+        map: x,
+        size: o,
+        sizeAttenuation: !0,
+        transparent: !0,
+        depthWrite: !1,
+        blending: v.AdditiveBlending,
+        color: s,
+        fog: !1
+    })
+      , g = new v.Points(m,d);
+    g.frustumCulled = !1,
+    t.root.add(g),
+    t.frames.push( (f, M, h) => {
+        for (let p = 0; p < r; p++) {
+            const G = i[p]
+              , w = G[3];
+            l[p * 3] = K(G[0] - h + 6 * Math.sin(M * .3 + w)),
+            l[p * 3 + 1] = G[1] + 3 * Math.sin(M * .7 + w * 2) + (Math.sin(M * 2.3 + w * 5) > .6 ? 0 : -400),
+            l[p * 3 + 2] = G[2] + 5 * Math.cos(M * .25 + w)
+        }
+        m.attributes.position.needsUpdate = !0
+    }
+    )
+}
+function C0(t, r) {
+    const a = q(t);
+    return new v.ShaderMaterial({
+        transparent: !0,
+        depthWrite: !1,
+        uniforms: {
+            uT: {
+                value: 0
+            },
+            uC: {
+                value: new v.Vector3(...a)
+            },
+            uK: {
+                value: r
+            }
+        },
+        vertexShader: "varying vec3 vW; void main(){ vec4 w = modelMatrix * vec4(position, 1.); vW = w.xyz; gl_Position = projectionMatrix * viewMatrix * w; }",
+        fragmentShader: `uniform float uT, uK; uniform vec3 uC; varying vec3 vW;
+      float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+      float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3. - 2. * f); return mix(mix(h(i), h(i + vec2(1, 0)), f.x), mix(h(i + vec2(0, 1)), h(i + vec2(1, 1)), f.x), f.y); }
+      void main(){ vec2 p = vW.xz * .02; float a = n(p + vec2(uT * .05 * uK, 0.)) * .6 + n(p * 2.3 - vec2(uT * .07, uT * .02)) * .4;
+        a = smoothstep(.35, .9, a); float d = length(vW.xz - cameraPosition.xz);
+        gl_FragColor = vec4(uC, a * .5 * smoothstep(1600., 500., d)); }`
+    })
+}
+const P0 = {
+    Л: "011101101101101",
+    А: "010101111101101",
+    Г: "111100100100100",
+    Е: "111100110100111",
+    Р: "110101110100100",
+    Ь: "100100110101110",
+    О: "111101101101111",
+    Д: "011101101111101",
+    Ф: "111111111010010",
+    М: "101111101101101",
+    К: "101110100110101",
+    Т: "111010010010010",
+    Ы: "101101111111111",
+    Н: "101101111101101",
+    П: "111101101101101",
+    И: "101101111111101",
+    С: "011100100100011",
+    У: "101101011001110",
+    Я: "011101011101101",
+    В: "110101110101110",
+    Б: "111100110101110",
+    З: "110001010001110",
+    Ч: "101101011001001",
+    Ж: "101101010101101",
+    Ш: "101101101111111",
+    Ц: "101101101111001",
+    Э: "110001011001110",
+    Ю: "101111111111101",
+    Х: "101101010101101",
+    Й: "101101111111101",
+    Ё: "111100110100111",
+    "-": "000000111000000",
+    " ": "000000000000000",
+    "«": "000000000000000",
+    "»": "000000000000000"
+};
+function S0(t, r, a, c) {
+    if (r < 0 || a < 0)
+        return !1;
+    const s = Math.floor(r / (4 * c))
+      , o = Math.floor((r - s * 4 * c) / c)
+      , n = Math.floor(a / c);
+    if (s >= t.length || o > 2 || n > 4)
+        return !1;
+    const u = P0[t[s]];
+    return !!u && u[n * 3 + o] === "1"
+}
+const F0 = (t, r) => (t.length * 4 - 1) * r
+  , T = (t, r, a, c) => e.mulc(e.mixc(5914150, 8017462, e.vnoise(t * .6, r * 3, a * .6)), (c || 1) * (.86 + .2 * e.hash3(Math.floor(t * .5), Math.floor(r * 2), Math.floor(a * .5))))
+  , y = {
+    x: 780,
+    z: -236,
+    rx: 440,
+    rz: 122
+}
+  , Q = (t, r, a) => {
+    const c = (t - y.x) / (y.rx + (a || 0))
+      , s = (r - y.z) / (y.rz + (a || 0));
+    return c * c + s * s < 1
+}
+;
+function c0(t) {
+    const r = e.mulberry32(t)
+      , a = new e.Grid(-18,0,-13,18,31,17.5,1.25)
+      , c = r() < .5
+      , s = 1.7
+      , o = (n, u, i) => {
+        const l = e.frac(u / s);
+        return l < .12 || l > .9 ? 2759698 : e.mulc(e.mixc(5913122, 8016434, e.vnoise(n * .4, Math.floor(u / s) * 3.3, i * .4)), .8 + .35 * Math.sin(l * Math.PI))
+    }
+    ;
+    return a.sculpt( (n, u, i) => {
+        const l = Math.abs(n)
+          , m = Math.abs(i);
+        if (i > 11 && i < 16.5 && l < 13)
+            return u < 1.4 ? T(n, u, i * 3) : Math.abs(l - 12) < .7 && Math.abs(i - 15.6) < .7 && u < 12 ? 3810838 : u > 11.6 && u < 12.6 + (16.5 - i) * .12 ? e.frac(n / 1.4) < .15 ? 1709072 : 3814448 : u < 4.6 && Math.abs(i - 15.8) < .3 && e.frac(n / 1.6) < .25 ? 3810838 : Math.abs(u - 4.4) < .3 && Math.abs(i - 15.8) < .3 && l > 3 ? 4862496 : -1;
+        if (n > 9 && n < 12.5 && i > -5 && i < -1.5 && u < 30)
+            return u > 28.6 ? 2762276 : e.mulc(e.mixc(5920080, 8024168, e.hash3(Math.floor(n), Math.floor(u / 1.2), Math.floor(i))), e.frac(u / 1.2) < .15 ? .6 : 1);
+        const x = 14 + (12.5 - m) * .82;
+        if (l < 16.5 && m < 12.8 && u > x - 1.2 && u < x)
+            return e.frac((m - 12.8) / 1.3) < .18 ? 1446416 : e.mulc(3420204, .85 + .25 * e.hash3(Math.floor(n / 2), Math.floor(m / 1.3), 1));
+        if (u >= x)
+            return -1;
+        if (l < 15.2 && m < 11) {
+            if (l < 14 && m < 9.8)
+                return 1314314;
+            if (i > 9.8) {
+                if (l < 2.2 && u < 9.2)
+                    return u > 8.6 || l > 1.7 ? 2759184 : 4860952;
+                for (const d of [-8.5, 8.5])
+                    if (Math.abs(n - d) < 3 && u > 5 && u < 10)
+                        return Math.abs(n - d) > 2.5 || u < 5.5 || u > 9.5 || Math.abs(n - d) < .25 || Math.abs(u - 7.5) < .25 ? 2759184 : d < 0 === c ? 16757834 | e.GLOW : 1712168
+            }
+            return l > 14 && m < 9.8 && Math.abs(i) < 2.6 && u > 5 && u < 9.5 ? l > 14.6 && Math.abs(i) > .2 && Math.abs(u - 7.2) > .2 ? 16760928 | e.GLOW : 2759184 : o(n, u, i)
+        }
+        if (u < 13.6 && l < 16.4 && m < 12.2 && l > 14 && m > 9.8) {
+            const d = e.frac(u / s);
+            if (d > .15 && d < .88)
+                return e.mulc(10517072, .9 + .2 * Math.sin(d * 9))
+        }
+        return u < 1 && l < 15.5 && m < 11.4 ? 4867136 : -1
+    }
+    ),
+    e.meshGlow(a, {
+        smooth: .3,
+        aoWide: 1,
+        noBottom: !0
+    })
+}
+function I0(t) {
+    const r = new e.Grid(-8,0,-8.5,8,10,9,2);
+    return r.sculpt( (a, c, s) => {
+        const o = Math.abs(a)
+          , n = Math.abs(s)
+          , u = 8.6
+          , i = 6.4 * (1 - c / u);
+        if (c < u && n < 7 && Math.abs(o - i) < .45)
+            return e.mulc(t, (e.frac(s / 3) < .06 ? .7 : 1) * (.85 + .2 * (c / u)) * (a < 0 ? .8 : 1));
+        if (c < u && s > 6.4 && s < 7 && o < i)
+            return o < i * .55 && c < u * .75 ? c < 2.6 && o < 1 ? 16760944 | e.GLOW : 920072 : e.mulc(t, .75);
+        if (c < u && s < -6.4 && s > -7 && o < i)
+            return e.mulc(t, .7);
+        if (Math.abs(c - u) < .4 && n < 7.6 && o < .4)
+            return 3811866;
+        for (const l of [-1, 1])
+            for (const m of [-7.2, 7.2]) {
+                const x = a * l / 7.6;
+                if (x > .05 && x < 1 && Math.abs(c - u * .55 * (1 - x)) < .35 && Math.abs(s - m * (1 + .1 * x)) < .3)
+                    return 14209216
+            }
+        return c < .3 && n < 7.4 && o < 7 ? 2763296 : -1
+    }
+    ),
+    e.meshGlow(r, {
+        smooth: .3,
+        noBottom: !0
+    })
+}
+function W0() {
+    const t = new e.Grid(-4.4,0,-4.4,4.4,4.6,4.4,3);
+    for (let r = 0; r < 11; r++) {
+        const a = r / 11 * z;
+        t.ball(Math.cos(a) * 3.4, .6, Math.sin(a) * 3.4, .85, e.mulc(6972512, .75 + .4 * e.hash3(r, 1, 2)))
+    }
+    for (let r = 0; r < 5; r++) {
+        const a = r / 5 * z + .3;
+        t.line(Math.cos(a) * 2.4, .3, Math.sin(a) * 2.4, Math.cos(a) * .3, 3.4, Math.sin(a) * .3, .32, .22, (c, s, o) => e.mulc(4861984, .8 + .3 * e.vnoise(c * 3, s * 3, o * 3)))
+    }
+    return t.sculpt( (r, a, c) => {
+        const s = Math.hypot(r, c);
+        return a < .5 && s < 2.4 ? e.hash3(r * 4, 1, c * 4) > .5 ? 16738842 | e.GLOW : 2759186 : -1
+    }
+    ),
+    e.meshGlow(t, {
+        smooth: .4,
+        noBottom: !0
+    })
+}
+function E0() {
+    const t = new e.Grid(-2.4,0,-2.4,2.4,9,2.4,3)
+      , r = [[0, 0, 7.6, 1.6], [.9, .5, 5.6, 1.1], [-.9, -.4, 6, 1.2], [.3, -1, 4.6, .9], [-.5, 1, 4.8, .9]];
+    return t.sculpt( (a, c, s) => {
+        for (const [o,n,u,i] of r) {
+            const l = c / u;
+            if (l > 1 || c < .4)
+                continue;
+            const m = i * (1 - l) * (.7 + .6 * Math.sin(l * Math.PI));
+            if (Math.hypot(a - o * (1 - l * .6), s - n * (1 - l * .6)) < m)
+                return l < .35 ? 16773280 : l < .7 ? 16752688 : 16734736
+        }
+        return -1
+    }
+    ),
+    e.meshGrid(t, {
+        smooth: .6
+    })
+}
+function T0() {
+    const t = new e.Grid(-5.2,-7,-44,5.2,12,2,1.5);
+    return t.sculpt( (r, a, c) => {
+        const s = Math.abs(r);
+        if (a > 1.2 && a < 2 && s < 4.6)
+            return e.frac(c / 1.3) < .14 ? 1708556 : T(r * 2, a, c, e.hash3(Math.floor(c / 1.3), 1, 2) < .15 ? .7 : 1);
+        for (let o = 0; o > -44; o -= 8)
+            if (Math.abs(s - 4.1) < .55 && Math.abs(c - o) < .55 && a < 4)
+                return 3811352;
+        return c < -41 && Math.abs(s - 4.1) < .4 && a < 10.5 && r > 0 ? 2763310 : c < -40.6 && c > -42.6 && r > 2.8 && r < 5.2 && a > 8.6 && a < 11 ? a > 10.4 || a < 9 ? 2763310 : 16765056 | e.GLOW : -1
+    }
+    ),
+    e.meshGlow(t, {
+        smooth: .25,
+        noBottom: !0
+    })
+}
+function u0(t, r) {
+    const a = new e.Grid(-8,-.2,-2.2,8,3,2.2,3);
+    return a.sculpt( (c, s, o) => {
+        const n = c / 7.6;
+        if (Math.abs(n) > 1)
+            return -1;
+        const u = 1.9 * Math.sqrt(1 - n * n) + .05
+          , i = 1.7 + .6 * n * n
+          , l = r ? 2.2 - s : s
+          , m = 0 + .9 * (1 - Math.sqrt(1 - Math.min(1, o / u * (o / u))));
+        return Math.abs(o) > u || l < m || l > i ? -1 : Math.abs(o) < u - .4 && l > m + .4 ? (Math.abs(c) < .4 || Math.abs(Math.abs(c) - 3.6) < .35) && l < i - .2 && l > i - .7 ? 6965802 : -1 : l > i - .3 ? 9071168 : e.mulc(t, .85 + .2 * e.vnoise(c, s, o))
+    }
+    ),
+    e.meshGlow(a, {
+        smooth: .5
+    })
+}
+function _0(t) {
+    const r = e.mulberry32(t)
+      , a = new e.Grid(-3,0,-3,3,11,3,3);
+    for (let c = 0; c < 16; c++) {
+        const s = (r() - .5) * 4
+          , o = (r() - .5) * 4
+          , n = 5 + r() * 5
+          , u = (r() - .5) * .6;
+        a.line(s, 0, o, s + u, n, o + u * .5, .12, .08, e.mixc(4082210, 6974e3, r())),
+        r() < .45 && a.line(s + u * (n - 1.6) / n, n - 1.6, o + u * .5 * (n - 1.6) / n, s + u, n - .2, o + u * .5, .32, .3, 4860952)
+    }
+    return e.meshGrid(a, {
+        smooth: .2,
+        noBottom: !0
+    })
+}
+function R0(t, r) {
+    const c = F0(t, .7)
+      , s = c / 2 + 1.6
+      , o = new e.Grid(-s - 1,0,-1,s + 1,15.5,1,2);
+    o.sculpt( (n, u, i) => {
+        const l = Math.abs(n);
+        return Math.abs(l - (s - 1)) < .5 && Math.abs(i) < .5 && u < 13.4 ? 3810838 : u > 8 && u < 13.6 && l < s && Math.abs(i) < .35 ? i > .1 && S0(t, n + c / 2, 12.6 - u, .7) ? 15260864 : e.frac(u / 1.4) < .1 ? 2759184 : T(n, u * .5, i) : u > 13.6 && u < 14.6 && l < s + .6 && Math.abs(i) < .6 ? 2759698 : -1
+    }
+    );
+    for (const n of [-1, 1])
+        o.ball(n * (s - 1), 14.2, .9, .42, 2763310),
+        o.setG(n * (s - 1), 13.6, .9, 16756816);
+    return e.meshGlow(o, {
+        smooth: .2,
+        noBottom: !0
+    })
+}
+let S = null;
+function L0() {
+    if (S)
+        return S;
+    const t = 128
+      , r = document.createElement("canvas");
+    r.width = r.height = t;
+    const a = r.getContext("2d")
+      , c = a.createImageData(t, t)
+      , s = new Float32Array(t * t);
+    for (let o = 0; o < t; o++)
+        for (let n = 0; n < t; n++) {
+            let u = 0;
+            for (let i = 1; i <= 4; i++)
+                u += Math.sin((n * (i + 1) + o * (5 - i) * .7) / t * z * 2 + i * 1.7) / i + Math.sin((o * (i + 2) - n * i * .5) / t * z * 2 + i) / i;
+            s[o * t + n] = u
+        }
+    for (let o = 0; o < t; o++)
+        for (let n = 0; n < t; n++) {
+            const u = s[o * t + (n + 1) % t] - s[o * t + (n + t - 1) % t]
+              , i = s[(o + 1) % t * t + n] - s[(o + t - 1) % t * t + n]
+              , l = Math.hypot(u, i, 2)
+              , m = (o * t + n) * 4;
+            c.data[m] = (-u / l * .5 + .5) * 255,
+            c.data[m + 1] = (-i / l * .5 + .5) * 255,
+            c.data[m + 2] = (2 / l * .5 + .5) * 255,
+            c.data[m + 3] = 255
+        }
+    return a.putImageData(c, 0, 0),
+    S = new v.CanvasTexture(r),
+    S.wrapS = S.wrapT = v.RepeatWrapping,
+    S.repeat.set(10, 4),
+    S
+}
+function O0() {
+    const t = new v.MeshStandardMaterial({
+        color: 793126,
+        roughness: .12,
+        metalness: .85,
+        envMapIntensity: 1.4,
+        normalMap: L0(),
+        normalScale: new v.Vector2(.35,.35)
+    });
+    return t.onBeforeCompile = r => A.patchFog(r),
+    t.customProgramCacheKey = () => "hwwater",
+    t
+}
+function *H0(t) {
+    const r = e.mulberry32(5051);
+    t.root = new v.Group,
+    t.root.visible = !1,
+    A.scene.add(t.root);
+    const a = (h, p) => {
+        if (Q(h, p))
+            return e.mixc(1054748, 1712680, P(h, p, .05, 1));
+        if (Q(h, p, 9))
+            return e.mixc(6970948, 8746325, P(h, p, .2, 2));
+        const G = Math.abs(p);
+        if (G < 9.5) {
+            const L = e.smooth(6.5, 9.5, G);
+            return e.mixc(e.mixc(5916210, 7232064, P(h, p, .15, 3)), 3814432, L)
+        }
+        const w = P(h, p, .03, 4)
+          , B = P(h, p, .12, 5);
+        return B > .62 ? e.mixc(4864548, 5915688, w) : e.mixc(2240544, 3621930, w * .7 + B * .3)
+    }
+      , c = O0();
+    t.h = (h, p) => H(h, p, 40) * e.smooth(1.06, 1.6, Math.hypot((h - y.x) / y.rx, (p - y.z) / y.rz)),
+    N(t, a, t.h, h => {
+        const p = new v.Mesh(new v.CircleGeometry(1,72),c);
+        p.rotation.x = -Math.PI / 2,
+        p.scale.set(y.rx + 4, y.rz + 4, 1),
+        p.position.set(y.x, .35, y.z),
+        p.receiveShadow = !0,
+        h.add(p);
+        const G = new v.Mesh(new v.PlaneGeometry(y.rx * 2.4,y.rz * 2.6),C0(10137800, 1));
+        G.rotation.x = -Math.PI / 2,
+        G.position.set(y.x, 3.5, y.z),
+        h.add(G),
+        (t.mists || (t.mists = [])).push(G)
+    }
+    ),
+    t.frames.push( (h, p) => {
+        S && (S.offset.x = p * .012,
+        S.offset.y = p * .006);
+        for (const G of t.mists)
+            G.material.uniforms.uT.value = p
+    }
+    ),
+    yield;
+    const s = [0, 1, 2].map(h => e.sculptSpruce({
+        res: 1.2,
+        h: [38, 50, 62][h],
+        r: [10, 12.5, 14][h],
+        seed: 31 + h * 7,
+        snow: !1
+    }));
+    yield;
+    const o = e.sculptSpruce({
+        res: .6,
+        h: 52,
+        r: 13,
+        seed: 77,
+        snow: !1
+    });
+    yield;
+    const n = (h, p) => Q(h, p, 26)
+      , u = k(r, 70, -44, -150, (h, p) => n(h, p) || h > 1180 && h < 1420 && p > -110 || h > 60 && h < 190 && p > -130, {
+        s0: .8,
+        s1: 1.15
+    })
+      , i = k(r, 26, -330, -420, n, {
+        s0: .9,
+        s1: 1.3
+    });
+    I(t, -470, 40, 70, 1845790, 91),
+    I(t, -560, 50, 85, 1582108, 92, 14),
+    I(t, -680, 60, 100, 1450012, 93, 18),
+    s.forEach( (h, p) => {
+        const G = u.filter( (w, B) => B % 3 === p);
+        b(t, h, "plant", G.filter(w => w.z > -95), {
+            cast: !0
+        }),
+        b(t, h, "plant", G.filter(w => w.z <= -95))
+    }
+    ),
+    b(t, o, "plant", i),
+    yield;
+    const l = [c0(11), c0(12)];
+    yield,
+    b(t, l[0], "wood", [{
+        x: 128,
+        z: -92,
+        ry: 0,
+        s: 1.15
+    }, {
+        x: 1530,
+        z: -128,
+        ry: -.25,
+        s: 1.1
+    }], {
+        cast: !0
+    }),
+    b(t, l[1], "wood", [{
+        x: 1080,
+        z: -420,
+        ry: .1,
+        s: 1.2
+    }, {
+        x: 420,
+        z: -440,
+        ry: -.15,
+        s: 1.2
+    }], {
+        cast: !0
+    });
+    const m = -y.rz * Math.sqrt(1 - Math.pow((600 - y.x) / y.rx, 2)) + y.z + 4;
+    b(t, T0(), "wood", [{
+        x: 600,
+        z: m,
+        y: 0,
+        ry: 0
+    }], {
+        cast: !0
+    }),
+    b(t, u0(9054754), "wood", [{
+        x: 611,
+        z: m - 30,
+        y: .1,
+        ry: 1.45,
+        ph: 0
+    }], {
+        cast: !0,
+        anim: (h, p) => ({
+            dy: .25 * Math.sin(p * 1.3),
+            rz: .03 * Math.sin(p * 1.1),
+            ry: h.ry + .04 * Math.sin(p * .4)
+        })
+    }),
+    b(t, u0(2775610, !0), "wood", [{
+        x: 905,
+        z: -102,
+        y: 0,
+        ry: .3
+    }, {
+        x: 930,
+        z: -108,
+        y: 0,
+        ry: -.2,
+        s: .95
+    }], {
+        cast: !0
+    }),
+    yield;
+    const x = [];
+    for (let h = 0; h < 70; h++) {
+        const p = r() * z
+          , G = 1.02 + r() * .05
+          , w = y.x + Math.cos(p) * y.rx * G
+          , B = y.z + Math.sin(p) * y.rz * G;
+        B > -60 || Math.abs(w - 600) < 12 || x.push({
+            x: w,
+            z: B,
+            y: 0,
+            ry: r() * z,
+            s: .8 + r() * .6
+        })
+    }
+    b(t, _0(3), "plant", x),
+    yield;
+    const d = 1300
+      , g = -52;
+    b(t, W0(), "stone", [{
+        x: d,
+        z: g,
+        y: 0
+    }], {
+        cast: !0
+    }),
+    b(t, E0(), "glow", [{
+        x: d,
+        z: g,
+        y: .3
+    }], {
+        anim: (h, p) => ({
+            sy: .85 + .2 * Math.sin(p * 9) * Math.sin(p * 5.3),
+            ry: p * .6
+        })
+    }),
+    [12080670, 3828282, 2902650].forEach( (h, p) => b(t, I0(h), "skin", [[{
+        x: d - 34,
+        z: g - 22,
+        ry: .5
+    }], [{
+        x: d + 30,
+        z: g - 26,
+        ry: -.4
+    }], [{
+        x: d + 4,
+        z: g - 44,
+        ry: .05
+    }]][p], {
+        cast: !0
+    }));
+    const M = e.sculptLog({
+        res: 2,
+        r: 1.2,
+        len: 10,
+        seed: 4,
+        snow: !1
+    });
+    b(t, M, "wood", [{
+        x: d - 11,
+        z: g + 2,
+        ry: .2,
+        y: 0
+    }, {
+        x: d + 10,
+        z: g - 4,
+        ry: -.3,
+        y: 0
+    }, {
+        x: d + 1,
+        z: g - 13,
+        ry: 1.5,
+        y: 0
+    }, {
+        x: 260,
+        z: 34,
+        ry: 1.2,
+        y: 0
+    }, {
+        x: 760,
+        z: 40,
+        ry: .4,
+        y: 0
+    }], {
+        cast: !0
+    }),
+    b(t, R0("ЛАГЕРЬ"), "wood", [{
+        x: 230,
+        z: -34,
+        y: 0,
+        ry: 0
+    }], {
+        cast: !0
+    }),
+    b(t, e.sculptLamp({
+        res: 2.5,
+        h: 14
+    }), "stone", [{
+        x: 205,
+        z: -22,
+        y: 0,
+        ry: Math.PI
+    }, {
+        x: 1250,
+        z: -24,
+        y: 0,
+        ry: Math.PI
+    }, {
+        x: 1580,
+        z: -60,
+        y: 0,
+        ry: Math.PI
+    }, {
+        x: 560,
+        z: -70,
+        y: 0,
+        ry: Math.PI
+    }], {
+        cast: !0
+    }),
+    yield,
+    b(t, e.sculptFern({
+        res: 2.5,
+        r: 3.2,
+        seed: 6
+    }), "plant", k(r, 70, 14, 48, null, {
+        s0: .8,
+        s1: 1.3
+    }).concat(k(r, 50, -14, -40, (h, p) => h > 1240 && h < 1360 || h > 200 && h < 260, {
+        s0: .8,
+        s1: 1.3
+    }))),
+    b(t, e.sculptStump({
+        res: 2,
+        r: 1.7,
+        h: 2.6,
+        seed: 9
+    }), "wood", k(r, 14, 16, 46).concat(k(r, 10, -18, -60, n)), {
+        cast: !0
+    }),
+    b(t, e.sculptRock({
+        res: 1.2,
+        seed: 13,
+        rx: 4.4,
+        ry: 2.6,
+        rz: 3.4,
+        palette: e.ROCK_GRAY,
+        moss: !0
+    }), "stone", k(r, 16, 18, 56).concat(k(r, 16, -16, -90, n)), {
+        cast: !0
+    }),
+    b(t, e.sculptShroom({
+        res: 3,
+        seed: 21,
+        n: 3,
+        s: .7
+    }), "skin", k(r, 18, -14, -50, n, {
+        s0: .7,
+        s1: 1
+    })),
+    yield,
+    O(t, 90, [-40, -300], [3, 22], 13172602, 1.6, 41),
+    O(t, 40, [g - 4, g + 4], [8, 30], 16752704, 1.2, 42)
+}
+const X = new v.Matrix4
+  , i0 = new v.Quaternion
+  , f0 = new v.Euler
+  , W = new v.Vector3
+  , N0 = new v.Vector3
+  , l0 = new v.Matrix3;
+function h0(t) {
+    const r = new v.BoxGeometry(1,1,1)
+      , a = r.attributes.position
+      , c = r.attributes.normal
+      , s = r.attributes.uv
+      , o = r.index.array
+      , n = []
+      , u = []
+      , i = []
+      , l = []
+      , m = [];
+    let x = 0;
+    for (const [g,f,M,h,p,G,w,B,L] of t) {
+        f0.set(0, B || 0, L || 0),
+        i0.setFromEuler(f0),
+        X.compose(W.set(g, f, M), i0, N0.set(h, p, G)),
+        l0.getNormalMatrix(X);
+        const [M0,b0,g0] = q(w);
+        for (let F = 0; F < a.count; F++) {
+            W.fromBufferAttribute(a, F).applyMatrix4(X),
+            n.push(W.x, W.y, W.z),
+            W.fromBufferAttribute(c, F).applyMatrix3(l0).normalize(),
+            u.push(W.x, W.y, W.z);
+            const j = Math.floor(F / 4)
+              , v0 = j < 2 ? G : h
+              , G0 = j < 2 || j > 3 ? p : G;
+            i.push(s.getX(F) * Math.max(v0, .3) / 1.2, s.getY(F) * Math.max(G0, .3) / 1.2),
+            l.push(M0, b0, g0)
+        }
+        for (const F of o)
+            m.push(x + F);
+        x += a.count
+    }
+    const d = new v.BufferGeometry;
+    return d.setAttribute("position", new v.Float32BufferAttribute(n,3)),
+    d.setAttribute("normal", new v.Float32BufferAttribute(u,3)),
+    d.setAttribute("uv", new v.Float32BufferAttribute(i,2)),
+    d.setAttribute("color", new v.Float32BufferAttribute(l,3)),
+    d.setIndex(m),
+    r.dispose(),
+    d
+}
+function D(t, r, a) {
+    a = a || {};
+    const c = e.mulberry32(r)
+      , s = []
+      , o = a.step || 2.2
+      , n = Math.floor(t / o)
+      , u = a.h || 20;
+    a.sparse || s.push([0, (u - 8) / 2, 0, t, u - 8, .6, 1316874]);
+    for (let i = 0; i < n; i++) {
+        const l = -t / 2 + (i + .5) * o + (c() - .5) * o * .5
+          , m = (i & 1 ? 1 : -1) * (.6 + c() * .9)
+          , x = u - 2 + c() * 5;
+        s.push([l, 1.8, m, .85, 3.6, .85, 3420186], [l, 3.6 + (x - 3.6) / 2, m, .7, x - 3.6, .7, e.mixc(5921314, 8023604, c())]),
+        s.push([l, x + 1.3, m, .5, 2.6, .5, 10520656], [l + .35, x + .5, m, .22, 1.7, .22, 12098652, 0, -.5]);
+        for (let d = 0; d < (a.leaves || 2); d++) {
+            const g = 5 + (d + c()) * (x - 8) / (a.leaves || 2)
+              , f = c() * z;
+            s.push([l + Math.cos(f) * 1.7, g, m - Math.sin(f) * 1.7, 3.6, .22, .85, e.mixc(5134874, 8025136, c()), f, .3 + c() * .35])
+        }
+        c() < .35 && s.push([l + .55, 9 + c() * 4, m + .3, .9, 2.6, .9, 12095536, 0, -.25])
+    }
+    return h0(s)
+}
+function x0(t) {
+    const r = new e.Grid(-24,0,-17,24,42,19,1)
+      , a = e.mulberry32(t);
+    return r.sculpt( (c, s, o) => {
+        const n = Math.abs(c)
+          , u = Math.abs(o)
+          , i = u > 9 ? 22 + (16 - u) * 1.45 : 32.2 + (9 - u) * .55;
+        if (n < 22.6 && u < 16.6 && s > i - 1 && s < i + .2)
+            return e.frac(u / 1.6) < .12 ? 2761252 : e.mulc(4867144, .85 + .2 * e.hash3(Math.floor(c / 3), Math.floor(u / 1.6), 2));
+        if (s > i)
+            return -1;
+        if (n < 21.5 && u < 15.5) {
+            if (n < 20.3 && u < 14.3)
+                return 1313802;
+            const l = o > 14.3
+              , m = !l && o > -14.3;
+            if (l) {
+                if (n < 7 && s < 15) {
+                    const x = n / 7
+                      , d = s / 15;
+                    return n > 6.3 || s > 14.3 || n < .35 || Math.abs(x - d) < .045 || Math.abs(x + d - 1) < .045 ? 15261904 : e.mulc(9053208, .85 + .15 * e.frac(c / 1.2))
+                }
+                if (n < 3.5 && s > 21 && s < 28)
+                    return n > 3 || s < 21.5 || s > 27.5 || n < .25 ? 15261904 : 16760928 | e.GLOW
+            }
+            return Math.abs(n - 21) < .6 || s < .8 ? 15261904 : m && Math.abs(s - 9) < 2.4 && e.frac((o + 40) / 9) < .28 ? Math.abs(s - 9) > 2 ? 15261904 : 1709076 : e.mulc(e.mixc(9053208, 11022882, e.hash3(Math.floor(c / 1.3), 3, Math.floor(o / 1.3))), e.frac((l ? c : o) / 1.3) < .1 ? .7 : 1)
+        }
+        return o > 15.5 && o < 18.6 && n < 3 && s > 28 && s < 30.6 ? 5917242 : -1
+    }
+    ),
+    e.meshGlow(r, {
+        smooth: .25,
+        aoWide: 1,
+        noBottom: !0
+    })
+}
+function m0() {
+    const t = new e.Grid(-9,0,-9,9,54,9,1);
+    return t.sculpt( (r, a, c) => {
+        const s = Math.hypot(r, c);
+        if (a < 44)
+            return s > 8 || s < 6.8 ? -1 : e.frac(a / 5) < .08 ? 5921376 : c > 7 && Math.abs(r) < .9 && e.frac(a / 1.2) < .3 ? 2763310 : e.mulc(e.mixc(9079440, 11184816, e.vnoise(r * .3, a * .15, c * .3)), e.frac(Math.atan2(c, r) * 6) < .1 ? .8 : 1);
+        const o = Math.hypot(s, (a - 44) * 1.25);
+        return o < 8.2 && o > 6.8 ? e.mulc(10132130, .9 + .15 * e.frac(Math.atan2(c, r) * 4)) : -1
+    }
+    ),
+    e.meshGrid(t, {
+        smooth: .4,
+        noBottom: !0
+    })
+}
+function d0() {
+    const t = new e.Grid(-3,-1.2,-5,3.4,2,5,3);
+    e.stampCrow(t, 0, -.6, 0, 1);
+    for (const r of [-1, 1])
+        for (let a = 0; a < 9; a++) {
+            const c = a / 8;
+            t.line(0, .4, r * .4, -.6 - c * 1.2, .6 + Math.sin(c * Math.PI) * .8, r * (.5 + c * 4.2), .2, .15, a > 6 ? 789520 : 1447452)
+        }
+    return e.meshGrid(t, {
+        smooth: .3
+    })
+}
+function D0(t) {
+    const r = e.mulberry32(t)
+      , a = new e.Grid(-3,-.2,-2.4,3,9,2.4,3)
+      , c = t % 3;
+    return a.sculpt( (s, o, n) => {
+        const u = Math.abs(s)
+          , i = Math.abs(n)
+          , l = 7.4 + .8 * Math.sin(s * 2.3 + t) * Math.cos(n * 1.7);
+        if (u > 2.6 || i > 1.9 || o > l || o < 0 || u < 2.2 && i < 1.5 && o > .4)
+            return -1;
+        if (n > 1.5) {
+            const m = o - 4.2;
+            for (const x of [-1, 1]) {
+                const d = s - x * .95;
+                if (c === 0 ? Math.hypot(d, m - .9) < .48 : c === 1 ? m > .5 && m < 1.4 && Math.abs(d) < (1.4 - m) * .7 : Math.abs(d) < .5 && Math.abs(m - .9) < .22)
+                    return 16756800 | e.GLOW
+            }
+            if (m < -.4 && m > -1.6 && u < 1.5 && Math.abs(m + 1 + .25 * Math.sin(s * 5)) < .32)
+                return 16752688 | e.GLOW
+        }
+        return e.mulc(e.mixc(10123856, 12096614, e.vnoise(s * 1.2, o * 1.2, n * 1.2)), e.frac(o / 1.7 + s * .1) < .08 ? .75 : 1)
+    }
+    ),
+    e.meshGlow(a, {
+        smooth: .3
+    })
+}
+function V0() {
+    const t = [[0, 19, 0, 1.3, 38, 1.3, 4864040], [0, 35, 0, .9, .9, 7.6, 3812384]];
+    for (const r of [-3.2, 0, 3.2]) {
+        t.push([0, 36, r, .5, 1.2, .5, 9087152]);
+        for (let a = 0; a < 24; a++) {
+            const c = a / 24
+              , s = (a + 1) / 24
+              , o = 36.4 - 20 * c * (1 - c)
+              , n = 36.4 - 20 * s * (1 - s)
+              , u = (c + s) * 60;
+            t.push([u, (o + n) / 2, r, 5.1, .16, .16, 1052692, 0, Math.atan2(n - o, 5)])
+        }
+    }
+    return h0(t)
+}
+function j0() {
+    const t = new e.Grid(-10,0,-4.4,10,9,4.4,2);
+    return t.sculpt( (r, a, c) => {
+        const s = Math.abs(c)
+          , o = n => e.mulc(e.mixc(n, 6961690, e.smooth(.5, .85, e.fbm3(r * .3, a * .3, c * .3, 3))), .85 + .2 * e.hash3(Math.floor(r * 2), Math.floor(a * 2), Math.floor(c * 2)));
+        for (const n of [-6.4, 6]) {
+            const u = Math.hypot(r - n, a - 1.8);
+            if (u < 1.9 && s > 3 && s < 4.3)
+                return u < .8 ? 9079440 : 1315860
+        }
+        return a < 1.8 || s > 3.9 || r > 6 && a > 5 ? -1 : r > 1.5 && r < 6 && a > 5 && a < 8.6 && s < 3.7 ? a > 5.4 && a < 8 && (r > 5.4 || s > 3.2) ? 1712680 : o(4876922) : r <= 1.5 && a > 4.2 ? a < 5.4 && (s > 3.2 || r < -9.4) ? o(4876922) : -1 : r > 9.4 && a < 4.4 && Math.abs(s - 2.6) < .7 && a > 3 ? 3815994 : o(4876922)
+    }
+    ),
+    e.meshGrid(t, {
+        smooth: .3,
+        noBottom: !0
+    })
+}
+function K0() {
+    const t = new e.Grid(-7.5,0,-5,8.5,12,5,2);
+    return t.sculpt( (r, a, c) => {
+        const s = Math.abs(c);
+        {
+            const o = Math.hypot(r + 3.6, a - 4);
+            if (o < 4 && s > 2.6 && s < 4.8)
+                return o > 3.2 ? e.frac(Math.atan2(a - 4, r + 3.6) * 3) < .4 ? 1710618 : 2763306 : o < 1.6 ? 14200880 : 2763306
+        }
+        {
+            const o = Math.hypot(r - 5.6, a - 2.2);
+            if (o < 2.2 && s > 2 && s < 3.6)
+                return o < .9 ? 14200880 : 1710618
+        }
+        return r > -1.4 && r < 7.8 && a > 2.6 && a < 6.6 && s < 2 ? a > 6 ? 6952976 : r > 7.3 ? Math.abs(s - 1.1) < .4 && Math.abs(a - 5) < .6 ? 3815984 : 2759188 : e.mulc(10101784, .85 + .15 * e.frac(r / 1.2)) : r > 4.6 && r < 5.4 && s < .4 && a > 6.6 && a < 10.4 ? 2763306 : r > -5 && r < -1.4 && a > 6.6 && a < 7.4 && s < 1.6 || r > -5.8 && r < -5 && a > 6.6 && a < 9 && s < 1.6 ? 2760728 : r > -5 && r < -1 && a > 3 && a < 6.6 && s < 2.4 ? 8002578 : -1
+    }
+    ),
+    e.meshGrid(t, {
+        smooth: .3,
+        noBottom: !0
+    })
+}
+function U0() {
+    const t = new e.Grid(-3.6,0,-2.6,3.6,7,2.6,2);
+    return t.sculpt( (r, a, c) => {
+        const s = Math.hypot(r, a - 3.4);
+        return s > 3.4 || Math.abs(c) > 2.4 ? -1 : Math.abs(c) > 2.1 ? e.mulc(13150296, .75 + .3 * Math.sin(s * 4 + Math.atan2(a - 3.4, r) * .7)) : Math.abs(Math.abs(c) - 1) < .15 ? 9071162 : e.mulc(e.mixc(12097087, 14204008, e.vnoise(r * 2, a * 2, c * .5)), .88 + .2 * e.hash3(r * 3, a * 3, c * 3))
+    }
+    ),
+    e.meshGrid(t, {
+        smooth: .5,
+        noBottom: !0
+    })
+}
+function Y0(t) {
+    const r = new e.Grid(-t / 2 - .6,0,-.8,t / 2 + .6,6.6,.8,2);
+    for (const a of [-t / 2, 0, t / 2])
+        r.box(a - .45, 0, -.45, a + .45, 6.2, .45, (c, s, o) => T(c, s * .3, o, .8));
+    for (const a of [2.6, 5])
+        r.line(-t / 2, a, 0, t / 2, a + (a > 3 ? -.3 : .2), 0, .32, .3, (c, s, o) => e.mulc(8022610, .85 + .2 * e.vnoise(c * .5, s, o)));
+    return e.meshGrid(r, {
+        smooth: .3,
+        noBottom: !0
+    })
+}
+function q0() {
+    const t = new e.Grid(-7,0,-7,10,44,7,1.5);
+    for (const r of [-1, 1])
+        for (const a of [-1, 1])
+            t.line(r * 5.5, 0, a * 5.5, r * 1.2, 38, a * 1.2, .35, .25, 5921378);
+    for (let r = 4; r < 38; r += 7) {
+        const a = 5.5 - r / 38 * 4.3;
+        for (const [c,s,o,n] of [[-a, -a, a, -a], [a, -a, a, a], [a, a, -a, a], [-a, a, -a, -a]])
+            t.line(c, r, s, o, r, n, .2, .2, 4868690)
+    }
+    return t.box(-2, 37.6, -2, 2, 38.4, 2, 4864554),
+    t.line(0, 39.5, 0, 0, 39.5, -8.8, .3, .3, 5921378),
+    t.box(-.2, 37.6, -9.8, .2, 41.6, -7.4, 9054752),
+    t.ball(0, 39.5, 0, .9, 3816e3),
+    e.meshGrid(t, {
+        smooth: .2,
+        noBottom: !0
+    })
+}
+function Q0() {
+    const t = new e.Grid(-8.5,-8.5,-1,8.5,8.5,1,2);
+    return t.sculpt( (r, a, c) => {
+        const s = Math.hypot(r, a)
+          , o = Math.atan2(a, r);
+        return Math.abs(c) > .6 ? -1 : s < 1 ? 3816e3 : Math.abs(s - 8) < .3 || Math.abs(s - 3.2) < .25 ? 6974066 : s < 8.2 && e.frac(o / z * 18) < .42 && s > 3.2 ? e.mulc(12105920, .85 + .15 * e.frac(o * 3)) : -1
+    }
+    ),
+    e.meshGrid(t, {
+        smooth: .2
+    })
+}
+function X0() {
+    const t = new e.Grid(-6,0,-4.5,8,10,4.5,2);
+    return t.sculpt( (r, a, c) => {
+        const s = Math.abs(r)
+          , o = Math.abs(c);
+        if (s > 4.6 && s < 5.2 && o > 2.8 && o < 3.4 && a < 3)
+            return 3811352;
+        const n = 8.6 - c * .25;
+        return s < 5.4 && o < 4.2 && a > n - .6 && a < n ? e.frac(r / 1.6) < .12 ? 2761760 : 5913130 : s < 4.8 && o < 3.4 && a > 3 && a < n - .6 ? c > 3 && Math.abs(r - 1.6) < .9 && a < 5.4 ? 1313800 : c > 3 && Math.abs(r + 2.4) < .8 && Math.abs(a - 6) < .7 ? 16760928 | e.GLOW : T(r, a * .4, c, 1.05) : r > 4.8 && r < 7.8 && Math.abs(c) < .8 && Math.abs(a - (3 - (r - 4.8))) < .3 ? 5915176 : -1
+    }
+    ),
+    e.meshGlow(t, {
+        smooth: .3,
+        noBottom: !0
+    })
+}
+function V(t) {
+    const r = e.mulberry32(t)
+      , a = new e.Grid(-21,0,-14,21,38,18,1)
+      , c = [6978186, 9075290, 5925466, 8018522][t % 4]
+      , s = [];
+    for (let o = 0; o < 12; o++)
+        s.push(r() < .45);
+    return a.sculpt( (o, n, u) => {
+        const i = Math.abs(o)
+          , l = Math.abs(u)
+          , m = 24 + (13 - l) * .9;
+        if (i < 20 && l < 13.6 && n > m - 1 && n < m)
+            return e.frac(l / 1.3) < .12 ? 1709592 : e.mulc(3813430, .85 + .2 * e.hash3(Math.floor(o / 2), Math.floor(l / 1.3), 4));
+        if (n > m)
+            return o > 9 && o < 12.5 && Math.abs(u + 3) < 1.8 && n < 37 ? e.mulc(6961706, e.frac(n / 1.1) < .15 ? .6 : 1) : -1;
+        if (u > 12 && u < 17.5 && i < 18)
+            return n < 1.4 ? T(o, n, u * 2, .9) : Math.abs(u - 17) < .5 && e.frac((o + 18) / 6) < .09 && n < 10 ? 15262940 : n > 10 && n < 11.2 ? 4866120 : n < 4 && Math.abs(u - 17) < .3 && e.frac(o / 1.2) < .3 ? 15262940 : -1;
+        if (i < 18 && l < 12) {
+            if (i < 16.8 && l < 10.8)
+                return 1182730;
+            if (u > 10.8 && i < 2 && n < 8.6)
+                return n > 8 || i > 1.6 ? 15262940 : 5909018;
+            let x = 0;
+            for (const d of [4.5, 15.5])
+                for (const g of [-12, -6, 6, 12])
+                    if (x++,
+                    l > 10.8 && Math.abs(o - g) < 1.9 && Math.abs(n - d - 1.8) < 2.6)
+                        return Math.abs(o - g) > 1.5 || Math.abs(n - d - 1.8) > 2.2 || Math.abs(o - g) < .15 || Math.abs(n - d - 1.8) < .15 ? 15262940 : s[x % 12] ? 16765056 | e.GLOW : 1317410;
+            return Math.abs(i - 17.5) < .5 ? 15262940 : e.mulc(c, e.frac(n / 1.1) < .14 ? .72 : .92 + .12 * e.hash3(Math.floor(o), Math.floor(n / 1.1), Math.floor(u)))
+        }
+        return n < 1.2 && i < 18.4 && l < 12.4 ? 5919824 : -1
+    }
+    ),
+    e.meshGlow(a, {
+        smooth: .25,
+        aoWide: 1,
+        noBottom: !0
+    })
+}
+function Z0(t) {
+    const r = new e.Grid(-t / 2 - .5,0,-.6,t / 2 + .5,6.4,.6,3);
+    for (let a = -t / 2 + .4; a < t / 2; a += 1.25)
+        r.box(a - .4, 0, -.18, a + .4, 5.2, .18, (c, s) => s > 5.2 - Math.abs(c - a) * 1.6 ? -1 : e.mulc(14736594, .85 + .15 * e.hash3(Math.floor(c * 3), 1, 2)));
+    for (const a of [1.4, 4])
+        r.box(-t / 2, a - .3, -.42, t / 2, a + .3, -.18, 13157562);
+    return e.meshGrid(r, {
+        smooth: .15,
+        noBottom: !0
+    })
+}
+function J0(t) {
+    const r = e.mulberry32(t)
+      , a = new e.Grid(-9,0,-3.6,9,4.4,3.6,2);
+    a.sculpt( (s, o, n) => {
+        const u = Math.abs(s)
+          , i = Math.abs(n);
+        return u > 8.6 || i > 3.2 || o > 1.8 ? -1 : u > 8 || i > 2.6 ? T(s, o * .5, n, .9) : o < 1.5 ? e.mixc(2759698, 3811352, e.hash3(s * 2, 1, n * 2)) : -1
+    }
+    );
+    const c = t % 3;
+    for (let s = -7; s <= 7; s += 2.8)
+        for (const o of [-1.3, 1.3])
+            if (c === 0)
+                a.ball(s + (r() - .5) * .4, 2.3, o, 1.05, (n, u, i) => e.mulc(e.mixc(5929530, 9087066, e.vnoise(n * 3, u * 3, i * 3)), .9 + .2 * Math.sin((n + i) * 6)));
+            else if (c === 1)
+                for (let n = 0; n < 4; n++)
+                    a.line(s, 1.6, o, s + (r() - .5) * 1.2, 3.4 + r(), o + (r() - .5) * 1.2, .14, .1, 4880938);
+            else
+                a.ball(s, 2.3, o, .9, 14182938),
+                a.setP(s, 3.2, o, 4872746);
+    return e.meshGrid(a, {
+        smooth: .4,
+        noBottom: !0
+    })
+}
+function p0(t) {
+    const r = e.mulberry32(t)
+      , a = new e.Grid(-3.2,0,-3.2,3.2,8.6,3.2,3)
+      , c = (r() - .5) * .5;
+    a.sculpt( (o, n, u) => {
+        const i = Math.hypot(o, u);
+        return n < 1.2 - i * .4 && i < 3 ? e.mulc(e.mixc(3811866, 4864548, e.hash3(o * 3, n * 3, u * 3)), .9) : -1
+    }
+    );
+    const s = (o, n, u) => e.mulc(e.mixc(6982234, 9085040, e.vnoise(o * 3, n * 3, u * 3)), .9);
+    a.line(0, .4, 0, c, 3.4, 0, .75, .62, (o, n, u) => n < 2.6 ? e.mulc(4864602, .8 + .3 * e.hash3(o * 4, n * 4, u * 4)) : s(o, n, u)),
+    a.ball(c, 4.1, 0, .82, s);
+    for (let o = 0; o < 4; o++) {
+        const n = c + (o - 1.5) * .42
+          , u = (o - 1.5) * .18;
+        a.line(n, 4.6, 0, n + Math.sin(u) * 1.6, 6.6 - Math.abs(o - 1.5) * .3, .3, .22, .16, s)
+    }
+    return a.line(c - .6, 4, .2, c - 1.6, 5.2, .6, .22, .17, s),
+    e.meshGrid(a, {
+        smooth: .45,
+        noBottom: !0
+    })
+}
+function $0(t) {
+    const r = new e.Grid(-1.8,0,-1.8,1.8,6.4,1.8,4)
+      , a = [2771594, 3828266, 8006250][t % 3];
+    return r.sculpt( (c, s, o) => {
+        const n = Math.hypot(c, o);
+        return s < .4 && n < 1.5 ? 4868680 : s < 2.6 && n < 1.2 - (s - .4) * .15 ? s < .9 ? 2759186 : a : s < 3.4 && n < .95 && o > .1 && s < 3.2 - Math.abs(c) * .4 ? 15789280 : s < 3.8 && n < .75 ? 14723208 : s < 6.2 && n < .95 * (1 - (s - 3.8) / 2.6) ? 13114910 : -1
+    }
+    ),
+    e.meshGrid(r, {
+        smooth: .5,
+        noBottom: !0
+    })
+}
+function tt() {
+    const t = new e.Grid(-1.6,0,-1.2,2,6.2,1.2,4);
+    return t.sculpt( (r, a, c) => Math.abs(r) < .25 && Math.abs(c) < .25 && a < 4.4 ? 4864554 : a > 4.2 && a < 5.6 && Math.abs(c) < .75 && r > -1.4 && r < 1.4 ? r > 1.2 ? 2763310 : 3820138 : r > 1.4 && r < 1.6 && a > 4.4 && a < 6 && c > .6 && c < .8 ? 13114910 : -1),
+    e.meshGrid(t, {
+        smooth: .4,
+        noBottom: !0
+    })
+}
+const Z = t => e.sculptPumpkin({
+    res: 3,
+    r: 2.2 * (t || 1),
+    carved: !0,
+    seed: 5 + (t || 1) * 7,
+    face: 1
+});
+function *rt(t) {
+    const r = e.mulberry32(6061);
+    t.root = new v.Group,
+    t.root.visible = !1,
+    A.scene.add(t.root);
+    const a = [[180, -70], [620, -110], [1050, -60], [1420, -95]]
+      , c = (f, M) => a.some( ([h,p]) => Math.hypot(f - h, M - p) < 24);
+    t.h = (f, M) => H(f, M, 30),
+    N(t, (f, M) => {
+        const h = Math.abs(M);
+        if (h < 10)
+            return e.mixc(e.mixc(6968376, 8415816, P(f, M, .12, 1)), 4864550, e.smooth(7, 10, h) * .6);
+        const p = e.frac(M / 9) < .35 ? .82 : 1;
+        return e.mulc(e.mixc(3812380, 5127206, P(f, M, .05, 2)), p)
+    }
+    , t.h),
+    yield;
+    const s = D(40, 3)
+      , o = D(40, 4);
+    yield;
+    const n = D(40, 5, {
+        step: 2.4,
+        leaves: 1,
+        sparse: !0
+    });
+    yield;
+    const u = []
+      , i = []
+      , l = [];
+    for (let f = -27; f > -260; f -= 9)
+        for (let M = 0; M < C; M += 40) {
+            if (c(M + 20, f))
+                continue;
+            const h = {
+                x: M + 20 + (r() - .5) * 3,
+                z: f + (r() - .5) * 1.5,
+                ry: r() < .5 ? 0 : Math.PI
+            };
+            (f > -70 ? u : f > -150 ? i : l).push(h)
+        }
+    b(t, s, "snowv", u.filter( (f, M) => M & 1), {
+        cast: !0
+    }),
+    b(t, o, "snowv", u.filter( (f, M) => !(M & 1)), {
+        cast: !0
+    }),
+    b(t, s, "snowv", i),
+    b(t, n, "snowv", l),
+    yield,
+    b(t, e.sculptDryGrass({
+        res: 3,
+        r: 1.4,
+        h: 3,
+        seed: 3
+    }), "plant", k(r, 120, 13, 60, null, {
+        s0: .8,
+        s1: 1.4
+    })),
+    b(t, Z(1), "plant", k(r, 22, 16, 50, null, {
+        s0: .8,
+        s1: 1.3,
+        extra: f => ({
+            ry: (f() - .5) * 1.2
+        })
+    })),
+    yield,
+    b(t, e.sculptScarecrow({
+        res: 3,
+        h: 12.6,
+        crow: !0
+    }), "wood", a.map( ([f,M]) => ({
+        x: f,
+        z: M,
+        ry: (r() - .5) * .6,
+        s: 1.7
+    })), {
+        cast: !0
+    });
+    const m = d0()
+      , x = [];
+    for (let f = 0; f < 26; f++)
+        x.push({
+            x: r() * C,
+            z: -40 - r() * 160,
+            y: 30 + r() * 30,
+            cx: 0,
+            rr: 14 + r() * 30,
+            sp: (r() < .5 ? 1 : -1) * (.4 + r() * .5),
+            ph: r() * z,
+            s: 1.3 + r() * .5
+        });
+    b(t, m, "skin", x, {
+        anim: (f, M) => {
+            const h = f.ph + M * f.sp;
+            return {
+                dx: Math.cos(h) * f.rr,
+                dz: Math.sin(h) * f.rr * .5,
+                dy: 2 * Math.sin(M * 2 + f.ph),
+                ry: -h - Math.sign(f.sp) * Math.PI / 2,
+                rz: .25 * Math.sin(M * 9 + f.ph)
+            }
+        }
+    }),
+    yield;
+    const d = [];
+    for (let f = 0; f < 22; f++)
+        d.push({
+            x: r() * C,
+            z: -22 - r() * 170,
+            y: 16 + r() * 34,
+            ph: r() * z,
+            s: 1.4 + r() * .6,
+            k: f % 3
+        });
+    [0, 1, 2].forEach(f => b(t, D0(f), "skin", d.filter(M => M.k === f), {
+        anim: (M, h) => ({
+            dy: 3 * Math.sin(h * .9 + M.ph),
+            dx: 8 * Math.sin(h * .21 + M.ph),
+            ry: .6 * Math.sin(h * .35 + M.ph),
+            rz: .12 * Math.sin(h * 1.3 + M.ph)
+        })
+    })),
+    yield;
+    const g = [];
+    for (let f = 0; f < C; f += 120)
+        g.push({
+            x: f,
+            z: -21,
+            y: 0
+        });
+    b(t, V0(), "wood", g, {
+        cast: !0
+    }),
+    b(t, j0(), "stone", [{
+        x: 760,
+        z: -16.5,
+        y: 0,
+        ry: .06
+    }], {
+        cast: !0
+    }),
+    yield,
+    b(t, x0(1), "wood", [{
+        x: 300,
+        z: -300,
+        ry: .15,
+        s: 1.3
+    }, {
+        x: 1250,
+        z: -340,
+        ry: -.2,
+        s: 1.2
+    }]),
+    yield,
+    b(t, m0(), "stone", [{
+        x: 360,
+        z: -330,
+        s: 1.2
+    }, {
+        x: 1180,
+        z: -372,
+        s: 1.1
+    }]),
+    b(t, e.sculptSpooky({
+        res: 1.5,
+        h: 34,
+        r: 1.8,
+        seed: 61,
+        leaves: .25,
+        crow: 2
+    }), "wood", k(r, 10, -230, -420, null, {
+        s0: 1,
+        s1: 1.5
+    })),
+    I(t, -500, 26, 46, 1843734, 64, 13),
+    I(t, -620, 34, 60, 1580054, 65, 17),
+    O(t, 50, [-20, -200], [4, 30], 16765562, 1.3, 63)
+}
+function *at(t) {
+    const r = e.mulberry32(7071);
+    t.root = new v.Group,
+    t.root.visible = !1,
+    A.scene.add(t.root),
+    t.h = (x, d) => H(x, d, 22),
+    N(t, (x, d) => {
+        const g = Math.abs(d);
+        if (g < 7.5) {
+            const M = e.frac(x / 6) < .06 ? .7 : 1;
+            return e.mulc(e.mixc(6974054, 9079428, P(x, d, .2, 1)), M)
+        }
+        if (g < 9.5)
+            return 3815984;
+        if (d < -36 && d > -46)
+            return e.mixc(2767390, 3425322, P(x, d, .1, 2));
+        const f = Math.floor(x / 11) & 1 ? 1 : .84;
+        return e.mulc(e.mixc(3036194, 4090412, P(x, d, .04, 3)), f)
+    }
+    , t.h),
+    yield;
+    const a = [V(0), V(1)];
+    yield;
+    const c = [V(2), V(3)];
+    yield,
+    b(t, a[0], "wood", [{
+        x: 120,
+        z: -150,
+        ry: 0
+    }, {
+        x: 900,
+        z: -146,
+        ry: .04
+    }], {
+        cast: !0
+    }),
+    b(t, a[1], "wood", [{
+        x: 520,
+        z: -152,
+        ry: -.04
+    }, {
+        x: 1300,
+        z: -150,
+        ry: 0
+    }], {
+        cast: !0
+    }),
+    b(t, c[0], "wood", [{
+        x: 300,
+        z: -330,
+        s: 1.1
+    }, {
+        x: 1100,
+        z: -340,
+        s: 1.1
+    }]),
+    b(t, c[1], "wood", [{
+        x: 700,
+        z: -330,
+        s: 1.1
+    }, {
+        x: 1500,
+        z: -350,
+        s: 1.1
+    }]),
+    yield;
+    const s = [];
+    for (let x = 0; x < C; x += 24)
+        s.push({
+            x: x + 12,
+            z: -40,
+            y: 0,
+            ry: 0
+        });
+    b(t, Z0(24), "stone", s, {
+        cast: !0
+    });
+    const o = [0, 1, 2].map(x => J0(x));
+    yield;
+    const n = k(r, 36, -54, -120, (x, d) => [120, 520, 900, 1300].some(g => Math.abs(x - g) < 30), {
+        s0: .95,
+        s1: 1.05,
+        extra: x => ({
+            ry: (x() - .5) * .1
+        })
+    });
+    o.forEach( (x, d) => b(t, x, "wood", n.filter( (g, f) => f % 3 === d), {
+        cast: !0
+    }));
+    const u = [0, 1, 2, 6].map( (x, d) => e.sculptGrave({
+        res: 3,
+        kind: x,
+        h: 6.5,
+        seed: 70 + d,
+        lean: .08
+    }));
+    yield;
+    const i = k(r, 40, -18, -34, null, {
+        s0: .9,
+        s1: 1.25,
+        extra: x => ({
+            ry: (x() - .5) * .4
+        })
+    }).concat(k(r, 22, 22, 38, null, {
+        s0: .9,
+        s1: 1.2,
+        extra: x => ({
+            ry: (x() - .5) * .4
+        })
+    }));
+    u.forEach( (x, d) => b(t, x, "stone", i.filter( (g, f) => f % 4 === d), {
+        cast: !0
+    }));
+    const l = [p0(1), p0(2)]
+      , m = k(r, 36, 17, 34, null, {
+        s0: 1,
+        s1: 1.4
+    }).concat(k(r, 24, -15, -32, null, {
+        s0: 1,
+        s1: 1.4
+    }));
+    l.forEach( (x, d) => b(t, x, "skin", m.filter( (g, f) => f % 2 === d), {
+        cast: !0,
+        anim: (g, f) => ({
+            rz: .12 * Math.sin(f * 2.2 + g.x),
+            ry: g.ry + .2 * Math.sin(f * .7 + g.z)
+        })
+    })),
+    yield,
+    [0, 1, 2].forEach(x => b(t, $0(x), "skin", k(r, 8, -48, -110, null, {
+        s0: 1.2,
+        s1: 1.5
+    }), {
+        cast: !0
+    })),
+    b(t, tt(), "stone", [120, 520, 900, 1300].map(x => ({
+        x: x + 14,
+        z: -12,
+        y: 0,
+        ry: Math.PI / 2
+    })), {
+        cast: !0
+    }),
+    b(t, e.sculptLamp({
+        res: 2.5,
+        h: 15
+    }), "stone", Array.from({
+        length: 10
+    }, (x, d) => ({
+        x: d * 160 + 70,
+        z: -11,
+        y: 0,
+        ry: Math.PI
+    })), {
+        cast: !0
+    }),
+    b(t, Z(1), "plant", [120, 520, 900, 1300].flatMap(x => [{
+        x: x - 8,
+        z: -134,
+        ry: .2
+    }, {
+        x: x + 7,
+        z: -134,
+        ry: -.3
+    }, {
+        x: x + 30,
+        z: -60,
+        ry: 0
+    }])),
+    yield,
+    b(t, e.sculptOak({
+        res: 1.2,
+        h: 30,
+        seed: 71
+    }), "plant", k(r, 10, -60, -130, (x, d) => [120, 520, 900, 1300].some(g => Math.abs(x - g) < 36), {
+        s0: 1,
+        s1: 1.3
+    }), {
+        cast: !0
+    }),
+    b(t, e.sculptSpooky({
+        res: 1.5,
+        h: 32,
+        r: 1.7,
+        seed: 72,
+        leaves: .3,
+        crow: 1,
+        eyes: !0
+    }), "wood", k(r, 14, -200, -420, null, {
+        s0: 1,
+        s1: 1.5
+    })),
+    I(t, -470, 24, 44, 1713176, 74, 12),
+    I(t, -590, 34, 58, 1449494, 75, 16),
+    O(t, 50, [-20, -160], [3, 20], 12124042, 1.4, 73)
+}
+function *et(t) {
+    const r = e.mulberry32(8081);
+    t.root = new v.Group,
+    t.root.visible = !1,
+    A.scene.add(t.root),
+    t.h = (o, n) => H(o, n, 36),
+    N(t, (o, n) => {
+        const u = Math.abs(n);
+        if (u < 9.5)
+            return e.mixc(e.mixc(6967862, 8283204, P(o, n, .15, 1)), 4603946, e.smooth(6.5, 9.5, u) * .7);
+        if (o % 400 > 40 && o % 400 < 220 && n < -50 && n > -130)
+            return e.mulc(3811864, e.frac(n / 7) < .4 ? .8 : 1);
+        const l = P(o, n, .04, 2);
+        return P(o, n, .15, 3) > .66 ? e.mixc(9073720, 10521160, l) : e.mixc(3820066, 5134890, l)
+    }
+    , t.h),
+    yield,
+    b(t, x0(2), "wood", [{
+        x: 600,
+        z: -160,
+        ry: .05,
+        s: 1.15
+    }, {
+        x: 1440,
+        z: -200,
+        ry: -.1
+    }], {
+        cast: !0
+    }),
+    yield,
+    b(t, m0(), "stone", [{
+        x: 660,
+        z: -195
+    }, {
+        x: 1385,
+        z: -235,
+        s: .9
+    }], {
+        cast: !0
+    }),
+    b(t, q0(), "stone", [{
+        x: 260,
+        z: -120
+    }, {
+        x: 1100,
+        z: -300,
+        s: 1.2
+    }], {
+        cast: !0
+    }),
+    b(t, Q0(), "stone", [{
+        x: 260,
+        z: -120 + 1.2,
+        hub: 39.5
+    }, {
+        x: 1100,
+        z: -300 + 1.4,
+        s: 1.2,
+        hub: 39.5
+    }], {
+        anim: (o, n) => ({
+            dy: o.hub * (o.s || 1),
+            rz: n * 1.6
+        })
+    }),
+    yield,
+    b(t, e.sculptCrookHouse({
+        res: 1.5,
+        seed: 3
+    }), "wood", [{
+        x: 920,
+        z: -150,
+        ry: .1,
+        s: 1.4
+    }], {
+        cast: !0
+    }),
+    b(t, U0(), "plant", k(r, 30, -30, -110, (o, n) => o % 400 > 30 && o % 400 < 230 && n > -140, {
+        s0: 1,
+        s1: 1.3
+    }), {
+        cast: !0
+    }),
+    b(t, e.sculptHay({
+        res: 3,
+        pumpkin: !0
+    }), "plant", k(r, 12, -26, -60, null, {
+        s0: 1.4,
+        s1: 1.8
+    }), {
+        cast: !0
+    }),
+    b(t, K0(), "stone", [{
+        x: 470,
+        z: -40,
+        ry: .3,
+        s: 1.3
+    }], {
+        cast: !0
+    }),
+    b(t, X0(), "wood", [{
+        x: 780,
+        z: -70,
+        ry: -.2,
+        s: 1.3
+    }, {
+        x: 1560,
+        z: -60,
+        ry: .3,
+        s: 1.3
+    }], {
+        cast: !0
+    }),
+    b(t, e.sculptWell({
+        res: 3
+    }), "stone", [{
+        x: 1e3,
+        z: -60,
+        s: 1.4
+    }], {
+        cast: !0
+    }),
+    b(t, e.sculptHayCart({
+        res: 3
+    }), "wood", [{
+        x: 1220,
+        z: -34,
+        ry: .15,
+        s: 1.5
+    }], {
+        cast: !0
+    }),
+    yield;
+    const a = [];
+    for (let o = 0; o < C; o += 400)
+        for (let n = -54; n > -128; n -= 7)
+            for (let u = o + 48; u < o + 216; u += 9 + r() * 6)
+                a.push({
+                    x: u,
+                    z: n + (r() - .5) * 2,
+                    ry: (r() - .5) * 1.4,
+                    s: .7 + r() * .6
+                });
+    b(t, Z(1), "plant", a.filter( (o, n) => n % 2)),
+    b(t, e.sculptPumpkin({
+        res: 3,
+        r: 2.2,
+        seed: 9
+    }), "plant", a.filter( (o, n) => !(n % 2))),
+    b(t, e.sculptScarecrow({
+        res: 3,
+        h: 12.6,
+        crow: !0
+    }), "wood", [130, 530, 930, 1330].map(o => ({
+        x: o,
+        z: -92,
+        ry: (r() - .5) * .5,
+        s: 1.6
+    })), {
+        cast: !0
+    }),
+    yield;
+    const c = [];
+    for (let o = 0; o < C; o += 16)
+        r() > .12 && c.push({
+            x: o + 8,
+            z: -18,
+            y: 0,
+            ry: (r() - .5) * .06
+        });
+    b(t, Y0(16), "wood", c, {
+        cast: !0
+    });
+    const s = [];
+    for (let o = 0; o < 18; o++)
+        s.push({
+            x: r() * C,
+            z: -60 - r() * 160,
+            y: 34 + r() * 26,
+            rr: 16 + r() * 26,
+            sp: (r() < .5 ? 1 : -1) * (.4 + r() * .4),
+            ph: r() * z,
+            s: 1.3 + r() * .4
+        });
+    b(t, d0(), "skin", s, {
+        anim: (o, n) => {
+            const u = o.ph + n * o.sp;
+            return {
+                dx: Math.cos(u) * o.rr,
+                dz: Math.sin(u) * o.rr * .5,
+                dy: 2 * Math.sin(n * 2 + o.ph),
+                ry: -u - Math.sign(o.sp) * Math.PI / 2,
+                rz: .25 * Math.sin(n * 9 + o.ph)
+            }
+        }
+    }),
+    b(t, e.sculptOak({
+        res: 1.2,
+        h: 32,
+        seed: 81
+    }), "plant", k(r, 14, -240, -420, null, {
+        s0: 1,
+        s1: 1.5
+    })),
+    I(t, -500, 24, 44, 1975320, 84, 13),
+    I(t, -620, 32, 56, 1580566, 85, 17),
+    b(t, D(40, 9, {
+        step: 2.4,
+        leaves: 1,
+        sparse: !0
+    }), "snowv", Array.from({
+        length: 40
+    }, (o, n) => ({
+        x: n % 40 * 40 + 20,
+        z: -150 - n % 3 * 9
+    })).filter(o => o.x % 400 > 260 || o.x % 400 < 20)),
+    O(t, 40, [-20, -150], [4, 22], 16769162, 1.3, 83)
+}
