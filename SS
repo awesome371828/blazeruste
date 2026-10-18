@@ -1,252 +1,936 @@
-( () => {
-    "use strict";
-    const y = "https://yandex.ru/ads/system/context.js"
-      , u = t => {
-        try {
-            return window[t]
-        } catch {
-            return null
+let b = globalThis.THREE
+  , r = null;
+const o0 = ["clown", "zombie", "skeleton", "maniac", "scarecrow"]
+  , n0 = {
+    clown: ["обычный", "r1"],
+    zombie: ["необычный", "r2"],
+    skeleton: ["редкий", "r3"],
+    maniac: ["эпический", "r4"],
+    scarecrow: ["легендарный", "r5"]
+}
+  , u0 = {
+    clown: "Клоун",
+    zombie: "Зомби",
+    skeleton: "Скелет",
+    maniac: "Маньяк",
+    scarecrow: "Пугало"
+}
+  , l0 = {
+    clown: "фиолетовый костюм в горошек, белый грим, красный нос и рыжий парик, который прыгает на бегу. Из кейса Хэллоуинского собора",
+    zombie: "зелёная кожа, швы, рваная рубаха и мозг наружу. Из кейса Хэллоуинского собора",
+    skeleton: "костяной динозавр: позвонки, рёбра и огоньки в глазницах. Из кейса Хэллоуинского собора",
+    maniac: "маска из мешковины, рабочая куртка и мачете. Из кейса Хэллоуинского собора",
+    scarecrow: "самый редкий: голова-тыква светится изнутри, соломенная шляпа и рваный плащ. Из кейса Хэллоуинского собора"
+}
+  , B = [5.5, 15.5, 0]
+  , $ = [2, 10, 0];
+export function register(o) {
+    b = o.THREE || b,
+    r = o.lib;
+    const a = o.SKINS
+      , t = (e, c, h, n) => {
+        const f = Object.assign(e, {
+            winter: !1,
+            theme: "halloween",
+            hw: !0,
+            gear: M0(n, h)
+        });
+        return f.fx = (s, u, m, p, i) => (f0 = f,
+        c(s, u, m, p, i)),
+        f
+    }
+    ;
+    a.clown = t({
+        back: 7087832,
+        flank: 9064176,
+        belly: 16774890,
+        stripe: 16764714,
+        ridge: 16723514,
+        ridgeTip: 16765498,
+        claw: 16777215,
+        tooth: 16777215,
+        mouth: 6946832,
+        tongue: 16734826,
+        eyeW: 16777215,
+        pupil: 1056842,
+        nostril: 6946832,
+        foot: 16723514,
+        lid: 2779903
+    }, p0, b0, "clown"),
+    a.zombie = t({
+        back: 3954738,
+        flank: 5929028,
+        belly: 9083500,
+        stripe: 2372636,
+        ridge: 4864556,
+        ridgeTip: 6969924,
+        claw: 3813408,
+        tooth: 14209184,
+        mouth: 3803658,
+        tongue: 5909034,
+        eyeW: 15262880,
+        pupil: 9048080,
+        nostril: 1713168,
+        foot: 3029542,
+        lid: 1976856
+    }, x0, S0, "zombie"),
+    a.skeleton = t({
+        back: 15130568,
+        flank: 14537914,
+        belly: 15920344,
+        stripe: 13156e3,
+        ridge: 15130568,
+        ridgeTip: 16775400,
+        claw: 15130568,
+        tooth: 16776168,
+        mouth: 657936,
+        tongue: 657936,
+        eyeW: 657938,
+        pupil: 657938,
+        nostril: 657936,
+        foot: 14537914,
+        lid: 1315866
+    }, v0, k0, "skeleton"),
+    a.maniac = t({
+        back: 2763828,
+        flank: 3816776,
+        belly: 5919816,
+        stripe: 1842466,
+        ridge: 2761760,
+        ridgeTip: 4866104,
+        claw: 2761760,
+        tooth: 15261896,
+        mouth: 2755082,
+        tongue: 4856346,
+        eyeW: 15788248,
+        pupil: 1706506,
+        nostril: 2759184,
+        foot: 1579036,
+        lid: 1708560
+    }, C0, g0, "maniac"),
+    a.scarecrow = t({
+        back: 8807994,
+        flank: 10518088,
+        belly: 13150312,
+        stripe: 6966826,
+        ridge: 14202970,
+        ridgeTip: 15915652,
+        claw: 3811866,
+        tooth: 16767072,
+        mouth: 1706500,
+        tongue: 1706500,
+        eyeW: 1706500,
+        pupil: 16756784,
+        nostril: 1706500,
+        foot: 4864552,
+        lid: 1706500
+    }, G0, V0, "scarecrow");
+    for (const e of o0)
+        o.SKIN_NAMES.includes(e) || o.SKIN_NAMES.push(e),
+        o.SHOP.find(c => c.id === e) || o.SHOP.push({
+            id: e,
+            name: u0[e],
+            note: l0[e],
+            price: 0,
+            case: !0,
+            rar: n0[e][0],
+            rc: n0[e][1]
+        });
+    return Object.assign(o.SHIELD_STYLE, {
+        clown: {
+            c1: 16726618,
+            c2: 16765498,
+            cells: 4,
+            orb: "star",
+            spin: 1.8
+        },
+        zombie: {
+            c1: 8252266,
+            c2: 3824160,
+            cells: 3,
+            orb: "gem",
+            spin: .9
+        },
+        skeleton: {
+            c1: 8055039,
+            c2: 15920344,
+            cells: 3,
+            orb: "cube",
+            spin: 1.2
+        },
+        maniac: {
+            c1: 11581124,
+            c2: 3805200,
+            cells: 2,
+            orb: "cube",
+            spin: 2.1
+        },
+        scarecrow: {
+            c1: 16747036,
+            c2: 16769162,
+            cells: 5,
+            orb: "fire",
+            spin: 1.4
+        }
+    }),
+    {
+        ids: o0,
+        stars: d0
+    }
+}
+let t0 = null;
+function d0(o, a, t) {
+    let e = o.hwStars;
+    if (!e) {
+        if (!a)
+            return;
+        if (!t0) {
+            const f = new r.Grid(-1.2,-1.2,-.3,1.2,1.2,.3,5);
+            f.sculpt( (s, u, m) => {
+                const p = Math.atan2(u, s) + Math.PI / 2
+                  , i = Math.hypot(s, u)
+                  , l = .5 + .5 * Math.cos(p * 5);
+                return i < .45 + .65 * Math.pow(l, 2.2) ? 16777215 : -1
+            }
+            ),
+            t0 = r.meshGrid(f, {
+                smooth: .3,
+                aoWide: 0
+            })
+        }
+        const c = new b.Group
+          , h = e0(16767050, 2.2)
+          , n = [];
+        for (let f = 0; f < 5; f++) {
+            const s = new b.Mesh(t0,h);
+            c.add(s),
+            n.push(s)
+        }
+        c.position.set(7.2 - B[0], 23.2 - B[1], 0),
+        o.head.add(c),
+        e = o.hwStars = {
+            grp: c,
+            list: n,
+            t: 0
         }
     }
-      , l = u("localStorage")
-      , a = u("sessionStorage")
-      , d = t => typeof t == "string" && /^R-A-\d+-\d+$/.test(t);
-    let n;
-    function m() {
-        return window.Ya?.Context?.AdvManager ? Promise.resolve(window.Ya.Context.AdvManager) : n || (n = new Promise( (t, i) => {
-            let e = !1;
-            const s = document.createElement("script")
-              , h = c => {
-                e || (e = !0,
-                clearTimeout(w),
-                c ? (s.remove(),
-                n = null,
-                i(c)) : t(window.Ya.Context.AdvManager))
-            }
-              , w = setTimeout( () => h(new Error("Реклама не загрузилась. Попробуйте позже.")), 12e3);
-            window.yaContextCb = window.yaContextCb || [],
-            window.yaContextCb.push( () => h(window.Ya?.Context?.AdvManager ? null : new Error("Реклама недоступна."))),
-            s.src = y,
-            s.async = !0,
-            s.onerror = () => h(new Error("Реклама недоступна. Проверьте соединение или попробуйте позже.")),
-            document.head.append(s)
-        }
-        ),
-        n)
+    e.grp.visible = a,
+    a && (e.t += t,
+    e.list.forEach( (c, h) => {
+        const n = e.t * 4.2 + h * Math.PI * 2 / 5;
+        c.position.set(Math.cos(n) * 4.4, 1.2 + .7 * Math.sin(e.t * 6 + h * 1.3), Math.sin(n) * 4.4),
+        c.rotation.set(0, -n, e.t * 5 + h),
+        c.scale.setScalar(1.7 + .3 * Math.sin(e.t * 9 + h))
     }
-    window.DinoRewarded = class {
-        constructor(t) {
-            Object.assign(this, t),
-            this.busy = !1,
-            this.config = null,
-            this.nextAt = 0,
-            this.pendingKey = "dino3d.rewarded.pending." + this.userKey,
-            this.localKey = "dino3d.rewarded.local",
-            this.pending = this.read(a, this.pendingKey, null),
-            this.buttons = [...document.querySelectorAll("[data-rewarded-button]")],
-            this.messages = [...document.querySelectorAll("[data-rewarded-status]")],
-            this.buttons.forEach(i => i.addEventListener("click", () => this.show())),
-            this.message("Реклама пока недоступна. Можно играть без неё."),
-            this.refresh(),
-            this.init()
-        }
-        read(t, i, e) {
-            try {
-                return JSON.parse(t.getItem(i)) || e
-            } catch {
-                return e
+    ))
+}
+const L = (o, a, t) => r.hash3(Math.floor(o * 3), Math.floor(a * 3), Math.floor(t * 3))
+  , H = (o, a, t, e, c) => r.mulc(o, 1 - c / 2 + c * L(a, t, e));
+function M0(o, a) {
+    return (t, e) => {
+        const h = (t.hwg || (t.hwg = {}))[o] || (e ? t.hwg[o] = a(t) : null);
+        h && (h.set(e),
+        e ? t.gearUp = h.up : t.gearUp === h.up && (t.gearUp = null))
+    }
+}
+const a0 = o => o.chest.children[0].material;
+function Z(o, a, t) {
+    const e = new b.Mesh(r.meshGrid(o, {
+        smooth: t === void 0 ? .4 : t
+    }),a0(a));
+    return e.castShadow = !0,
+    e.receiveShadow = !0,
+    e
+}
+function e0(o, a) {
+    return new b.ShaderMaterial({
+        uniforms: {
+            uC: {
+                value: new b.Color(o)
+            },
+            uK: {
+                value: a
             }
-        }
-        write(t, i, e) {
-            try {
-                e === null ? t.removeItem(i) : t.setItem(i, JSON.stringify(e))
-            } catch {}
-        }
-        async init() {
-            try {
-                const t = await fetch("/rewarded-config.json", {
-                    cache: "no-store",
-                    signal: AbortSignal.timeout(1e4)
-                });
-                if (!t.ok)
-                    throw new Error("config");
-                this.config = await t.json(),
-                this.available() && this.message("За полный просмотр — 25 игровых монет. Их можно потратить в магазине.")
-            } catch {}
-            this.pending && this.message("Осталось получить монеты за завершённый просмотр. Нажмите кнопку."),
-            this.refresh()
-        }
-        available() {
-            return this.config?.enabled === !0 && (d(this.config.desktopBlockId) || d(this.config.touchBlockId))
-        }
-        message(t) {
-            this.messages.forEach(i => {
-                i.textContent = t
+        },
+        vertexShader: "void main(){ gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.); }",
+        fragmentShader: "uniform vec3 uC; uniform float uK; void main(){ gl_FragColor = vec4(uC * uK, 1.); }"
+    })
+}
+function r0(o, a, t, e, c) {
+    const h = a.map( () => new b.Vector3)
+      , n = a.map( () => new b.Vector3)
+      , f = a.map( () => new b.Vector3)
+      , s = new b.Vector3;
+    let u = !1;
+    return {
+        P: h,
+        step(m, p) {
+            o.root.updateMatrixWorld(!0);
+            for (let l = 0; l < a.length; l++)
+                f[l].set(...a[l].o),
+                a[l].b.localToWorld(f[l]),
+                o.root.worldToLocal(f[l]);
+            if (!u) {
+                for (let l = 0; l < a.length; l++)
+                    h[l].copy(f[l]),
+                    n[l].copy(f[l]);
+                u = !0
             }
-            )
-        }
-        refresh() {
-            const t = Date.now() < this.nextAt && !this.pending;
-            this.buttons.forEach(i => {
-                i.disabled = this.busy || !this.available() && !this.pending || t,
-                i.textContent = this.busy ? "Подождите…" : this.pending ? "Получить монеты за просмотр" : "Смотреть рекламу · +25 монет"
-            }
-            )
-        }
-        setBusy(t) {
-            this.busy = t,
-            this.onBusy(t),
-            this.refresh()
-        }
-        setCooldown(t) {
-            this.nextAt = t || 0,
-            clearTimeout(this.cooldownTimer),
-            this.nextAt > Date.now() && (this.cooldownTimer = setTimeout( () => {
-                this.nextAt = 0,
-                this.refresh(),
-                this.message("Можно посмотреть рекламу и получить ещё 25 монет.")
-            }
-            , this.nextAt - Date.now()))
-        }
-        async api(t, i) {
-            try {
-                const e = await fetch("/api/rewarded/" + t, {
-                    method: "POST",
-                    headers: this.headers,
-                    body: JSON.stringify(i),
-                    signal: AbortSignal.timeout(12e3)
-                });
-                return e.status >= 500 ? null : await e.json()
-            } catch {
-                return null
-            }
-        }
-        async reserve() {
-            if (this.hasServer) {
-                if (this.profile.online || await this.profile.sync(),
-                !this.profile.online)
-                    throw new Error("Не удалось загрузить профиль. Откройте игру из Telegram заново.");
-                const e = await this.api("start", {});
-                if (!e?.ok)
-                    throw this.setCooldown(e?.nextAt),
-                    new Error(e?.error || "Нет связи с сервером. Попробуйте позже.");
-                return e.ticket
-            }
-            const t = this.read(l, this.localKey, {})
-              , i = new Date().toISOString().slice(0, 10);
-            if (t.day === i && t.count >= this.config.dailyLimit)
-                throw new Error("Награды за рекламу на сегодня закончились. Возвращайтесь завтра.");
-            if (Date.now() < (t.nextAt || 0))
-                throw this.setCooldown(t.nextAt),
-                new Error("Следующий просмотр доступен чуть позже.");
-            return crypto.randomUUID()
-        }
-        async claim() {
-            const t = this.pending?.ticket;
-            if (!t)
-                return;
-            let i;
-            if (this.hasServer)
-                i = await this.api("claim", {
-                    ticket: t
-                });
-            else {
-                const e = this.read(l, this.localKey, {})
-                  , s = new Date().toISOString().slice(0, 10);
-                e.receipt !== t && (this.profile.coins += this.pending.coins,
-                this.profile.keep(),
-                e.count = (e.day === s && e.count || 0) + 1,
-                e.day = s,
-                e.receipt = t,
-                e.nextAt = Date.now() + (this.config?.cooldownSeconds || 60) * 1e3,
-                this.write(l, this.localKey, e)),
-                i = {
-                    ok: !0,
-                    gain: this.pending.coins,
-                    nextAt: e.nextAt
+            const i = Math.min(m, 1 / 30);
+            for (let l = 0; l < a.length; l++) {
+                const d = h[l]
+                  , M = n[l]
+                  , v = a[l];
+                if (v.p < 0 && v.fix) {
+                    M.copy(d),
+                    d.copy(f[l]);
+                    continue
                 }
+                s.subVectors(d, M).multiplyScalar(e),
+                M.copy(d),
+                d.add(s).addScaledVector(s.subVectors(f[l], d), Math.min(1, (v.k || t) * i * i)),
+                d.y -= c * i * i,
+                d.x -= p * .6 * i * i * (v.wind || 1)
             }
-            if (!i)
-                throw new Error("Просмотр завершён, но нет связи с сервером. Нажмите «Получить монеты за просмотр» — повторная реклама не нужна.");
-            if (!i.ok)
-                throw this.pending = null,
-                this.write(a, this.pendingKey, null),
-                new Error(i.error || "Не удалось получить награду.");
-            this.hasServer && (this.profile.coins = i.coins,
-            this.profile.keep()),
-            this.pending = null,
-            this.write(a, this.pendingKey, null),
-            this.setCooldown(i.nextAt),
-            this.message("Получено " + i.gain + " монет! Следующий просмотр — через минуту.")
-        }
-        async show() {
-            if (!(this.busy || !this.canShow() || !this.available() && !this.pending)) {
-                this.setBusy(!0);
-                try {
-                    if (this.pending) {
-                        await this.claim();
-                        return
-                    }
-                    this.message("Загружаем рекламу…");
-                    const t = await m()
-                      , i = t.getPlatform() === "desktop" ? "desktop" : "touch"
-                      , e = this.config[i + "BlockId"];
-                    if (!d(e))
-                        throw new Error("Реклама для этого устройства пока недоступна.");
-                    const s = await this.reserve();
-                    if (!this.canShow() || document.hidden)
-                        throw new Error("Просмотр отменён. Вернитесь в меню и попробуйте снова.");
-                    if (!await new Promise( (w, c) => {
-                        let f = !1;
-                        const r = (o, g) => {
-                            f || (f = !0,
-                            clearTimeout(p),
-                            g ? c(g) : w(o))
-                        }
-                          , p = setTimeout( () => {
-                            try {
-                                t.destroy({
-                                    blockId: e
-                                })
-                            } catch {}
-                            r(!1, new Error("Реклама не ответила. Попробуйте позже."))
-                        }
-                        , 18e4);
-                        try {
-                            t.render({
-                                blockId: e,
-                                type: "rewarded",
-                                platform: i,
-                                onRewarded: o => r(o === !0),
-                                onError: o => {
-                                    o?.type !== "warning" && r(!1, new Error("Реклама сейчас недоступна. Монеты не начислены."))
-                                }
-                                ,
-                                onRender: () => {
-                                    this.message("Идёт реклама. Дождитесь окончания просмотра.")
-                                }
-                            }, () => r(!1, new Error("Сейчас нет подходящей рекламы. Попробуйте позже.")))
-                        } catch {
-                            r(!1, new Error("Не удалось открыть рекламу. Попробуйте позже."))
-                        }
-                    }
-                    )) {
-                        this.message("Просмотр не завершён. Монеты не начислены.");
-                        return
-                    }
-                    this.pending = {
-                        ticket: s,
-                        coins: this.config.coins
-                    },
-                    this.write(a, this.pendingKey, this.pending),
-                    await this.claim()
-                } catch (t) {
-                    this.message(t.message)
-                } finally {
-                    this.setBusy(!1)
+            for (let l = 0; l < 2; l++)
+                for (let d = 0; d < a.length; d++) {
+                    const M = a[d];
+                    if (M.p < 0)
+                        continue;
+                    s.subVectors(h[d], h[M.p]);
+                    const v = s.length();
+                    v < 1e-5 || h[d].addScaledVector(s, -(v - M.len) / v)
                 }
-            }
+        },
+        reset() {
+            u = !1
         }
     }
 }
-)();
+function p0(o, a, t, e, c) {
+    const h = Math.abs(e);
+    if (o === 3) {
+        const f = a - 6.4
+          , s = t - 21.2;
+        if (s > -.3 && s < 5.4) {
+            const i = s / 5.4
+              , l = f + .6 * i
+              , d = 1.9 * (1 - i) + .15;
+            if (Math.hypot(l, e + .5 * i) < d)
+                return r.frac(s * .75) < .5 ? 16723514 : 16765498
+        }
+        if (Math.hypot(f + .6, s - 5.5, e + .5) < .85)
+            return 16777215;
+        if (Math.hypot(a - 12.75, t - 19.95, e) < .98)
+            return H(16718378, a, t, e, .12);
+        const u = c(a, t, e);
+        if (u < 0)
+            return u;
+        const m = Math.hypot(a - 6.75, t - 18.85, h - 2.7);
+        if (m < .95)
+            return u;
+        if (h > 2.1 && Math.abs(a - 6.75) * .75 + Math.abs(t - 18.85) < 2.1 && m < 2.4)
+            return 2779903;
+        if (u === V().tooth || u === V().mouth || u === V().tongue)
+            return u;
+        const p = 16.95 + .55 * r.smooth(10.5, 8.3, a);
+        return t < p + .5 && t > p - .15 && a > 8.2 && h > m0(a) - .75 ? 14684202 : a > 6 || t < 17.3 ? H(16447218, a, t, e, .06) : u
+    }
+    if (o === 4) {
+        const f = c(a, t, e);
+        return f < 0 || f === V().tooth || f === V().mouth || f === V().tongue ? f : t > 14.85 && h > 1.8 ? 14684202 : H(16447218, a, t, e, .06)
+    }
+    const n = c(a, t, e);
+    if (n < 0)
+        return n;
+    if (o === 0 || o === 1) {
+        if (o === 1 && a > 7.1 && h < .9) {
+            for (const i of [12.6, 10.9, 9.2])
+                if (Math.hypot(a - 8 + (i - 10.9) * .08, t - i, e) < .8)
+                    return [16738842, 3854410, 16765498][Math.round((i - 9.2) / 1.7)]
+        }
+        const f = Math.floor((a + 40) / 2.3)
+          , s = Math.floor((t + 40) / 2.3)
+          , u = r.hash3(f, s, e > 0 ? 3 : 5)
+          , m = (f + .5) * 2.3 - 40 + (r.hash3(f, s, 7) - .5)
+          , p = (s + .5) * 2.3 - 40 + (r.hash3(f, s, 9) - .5);
+        return h > 1.2 && u < .55 && Math.hypot(a - m, t - p) < .75 ? [16765498, 3854410, 2788095, 16723514][Math.floor(u * 7.27) % 4] : n
+    }
+    return o === 6 || o === 8 ? n === V().claw ? 16777215 : t < 10.6 ? H(16777215, a, t, e, .08) : t < 11 ? 16765498 : n : o >= 9 && o <= 14 ? r.frac((a + 40) / 2.6) < .5 ? n : H(16764714, a, t, e, .1) : o === 15 || o === 18 ? Math.floor((a + 9) / 1.3) + Math.floor((t + 9) / 1.3) & 1 ? 16723514 : 16765498 : o === 16 || o === 19 ? r.frac((t + 9) / .9) < .5 ? 16777215 : 16723514 : o === 17 || o === 20 ? a > 2.6 && t > -.7 ? 16777215 : H(16723514, a, t, e, .1) : n
+}
+let f0 = null;
+const V = () => f0
+  , m0 = o => 3 - .55 * r.smooth(8, 13, o);
+function b0(o) {
+    const a = ( () => {
+        const i = new r.Grid(-1.6,-1.6,-1.6,1.6,1.6,1.6,4);
+        return i.sculpt( (l, d, M) => {
+            const v = Math.hypot(l, d, M)
+              , R = r.vnoise(l * 2.2, d * 2.2, M * 2.2);
+            return v < 1.05 + .45 * R ? R > .62 ? 16756778 : r.mulc(16738836, .85 + .3 * L(l, d, M)) : -1
+        }
+        ),
+        r.meshGrid(i, {
+            smooth: .7,
+            aoWide: .6
+        })
+    }
+    )()
+      , t = [[4.6, 20.3, 2.6], [3.6, 18.9, 2.9], [4.6, 20.3, -2.6], [3.6, 18.9, -2.9], [2.7, 20.2, 1.3], [2.7, 20.2, -1.3]]
+      , e = [];
+    for (const i of t) {
+        const l = [i[0] - B[0], i[1] - B[1], i[2]]
+          , d = Math.abs(i[2]) > 2
+          , M = d ? [-.35, .15, Math.sign(i[2]) * .92] : [-.9, .1, Math.sign(i[2]) * .4];
+        let v = e.length;
+        e.push({
+            b: o.head,
+            o: l,
+            p: -1,
+            fix: !0
+        });
+        for (let R = 1; R <= 3; R++)
+            e.push({
+                b: o.head,
+                o: [l[0] + M[0] * 1.15 * R, l[1] + M[1] * 1.15 * R - .3 * R * R, l[2] + M[2] * 1.15 * R],
+                p: v,
+                len: 1.15,
+                k: 900 - 200 * R
+            }),
+            v = e.length - 1
+    }
+    const c = r0(o, e, 800, .9, 120)
+      , h = new b.InstancedMesh(a,a0(o),e.length);
+    h.castShadow = !0,
+    h.frustumCulled = !1,
+    o.root.add(h);
+    const n = new r.Grid(-4,-2,-4.6,4,2,4.6,3);
+    n.sculpt( (i, l, d) => {
+        const M = Math.atan2(d, i)
+          , v = Math.hypot(i, d)
+          , R = 3.9 + .5 * Math.abs(Math.sin(M * 7));
+        return v > R || v < 2 || Math.abs(l) > .9 - .25 * (v - 2) * Math.abs(Math.sin(M * 7)) ? -1 : Math.abs(Math.sin(M * 7)) < .25 ? 14473448 : 16777215
+    }
+    );
+    const f = Z(n, o, .5);
+    f.position.set(4.9 - $[0], 13.4 - $[1], 0),
+    f.rotation.z = -.22,
+    o.chest.add(f);
+    const s = w0(o)
+      , u = new b.Group;
+    u.position.set(.5, -1.1, .6),
+    u.rotation.set(0, 0, 2.45),
+    u.add(s),
+    o.arms[0].fore.add(u);
+    const m = new b.Matrix4
+      , p = {
+        hold: u,
+        bat: s,
+        ang: 2.45,
+        set(i) {
+            h.visible = f.visible = u.visible = i,
+            i && c.reset()
+        },
+        up(i, l) {
+            let d = p.ang;
+            if (o.hwBat > 0) {
+                o.hwBat += i * 2.6;
+                const M = Math.min(1, o.hwBat);
+                d = p.ang - 3.6 * Math.sin(Math.PI * M) * (M < .35 ? M / .35 : 1),
+                o.hwBat >= 1 && (o.hwBat = 0)
+            }
+            c0(o, u, d),
+            c.step(i, l);
+            for (let M = 0; M < e.length; M++) {
+                const v = e[M].p < 0 ? .75 : .95 - .1 * (M % 4 - 1);
+                m.makeScale(v, v, v).setPosition(c.P[M]),
+                h.setMatrixAt(M, m)
+            }
+            h.instanceMatrix.needsUpdate = !0
+        }
+    };
+    return p
+}
+function w0(o) {
+    const a = new r.Grid(-.9,-.9,-.9,.9,11.5,.9,4);
+    return a.sculpt( (t, e, c) => {
+        const h = Math.hypot(t, c)
+          , n = e < 1.6 ? .38 : .38 + .42 * r.smooth(2.5, 9.5, e);
+        return e < .3 && h < .55 ? 2759184 : h > n || e > 11 - (h > .6 ? .3 : 0) ? -1 : e < 2.2 ? r.frac(e * 2.4) < .5 ? 1710626 : 2763316 : r.mulc(r.mixc(11565626, 14196816, r.vnoise(t * .8, e * .15, c * .8)), .92 + .12 * L(t, e, c))
+    }
+    ),
+    Z(a, o, .6)
+}
+function x0(o, a, t, e, c) {
+    const h = Math.abs(e);
+    if (o === 3) {
+        const f = Math.hypot((a - 7) / 2.4, (t - 21) / 1.45, e / 1.95);
+        if (f < 1) {
+            const u = r.vnoise(a * 2.6, t * 2.6, e * 2.6);
+            return Math.abs(u - .5) < .08 ? 10107466 : r.mulc(15764122, .88 + .2 * u)
+        }
+        const s = c(a, t, e);
+        return s < 0 ? s : f < 1.3 && t > 19.8 ? H(14209200, a, t, e, .15) : s === V().tooth && r.hash3(Math.floor(a * 1.5), 3, e > 0 ? 1 : 2) < .35 ? V().mouth : Math.abs(a - 10.4 - (t - 18) * .3) < .2 && t > 16.8 && t < 20.6 ? 1709072 : Math.abs(r.frac((t - 16.8) / .7) - .5) < .12 && Math.abs(a - 10.4 - (t - 18) * .3) < .55 && t > 16.8 && t < 20.6 ? 2760728 : r.fbm3(a * .5, t * .5, e * .5, 3) > .6 && s !== V().eyeW && s !== V().pupil ? r.mixc(s, 6965850, .45) : s
+    }
+    const n = c(a, t, e);
+    return n < 0 ? n : o === 0 || o === 1 ? e > 1.8 && a > -2.6 && a < 2.6 && t > 7.6 && t < 12.2 ? r.frac((a + 3) / 1.15) < .42 ? H(15129792, a, t, e, .1) : 2756626 : t > 6.4 + 1.6 * r.vnoise(a * .8, 1, e * .8) && a > -5.5 + 2 * r.vnoise(t * .7, 2, e) && r.fbm3(a * .6, t * .6, e * .6, 3) < .6 ? r.mulc(r.mixc(4871272, 6187132, r.vnoise(a * 1.5, t * 1.5, e * 1.5)), r.fbm3(a * .4, t * .4, e * .4 + 5, 3) > .62 ? .6 : 1) : n : o === 5 || o === 7 ? r.frac((a - t * .6) * 1.6) < .5 ? 14077104 : 12103314 : o === 15 || o === 18 ? t > -3.2 + .8 * r.vnoise(a * 2, 1, e * 2) ? r.mulc(r.mixc(4864554, 6179380, r.vnoise(a, t, e)), .9 + .2 * L(a, t, e)) : n : o >= 9 && o <= 14 && Math.abs(r.frac((a + 40) / 4.3) - .5) < .04 && t > 10 ? 1709072 : n
+}
+function S0(o) {
+    const a = ( () => {
+        const n = new r.Grid(-.5,-.5,-.5,.5,.5,.5,4);
+        return n.box(-.45, -.45, -.18, .45, .45, .18, (f, s, u) => r.frac((s + 1) * 1.4) < .25 ? 12103314 : 14077104),
+        r.meshGrid(n, {
+            smooth: .3
+        })
+    }
+    )()
+      , t = [];
+    for (const n of [o.arms[0], o.arms[1]]) {
+        let f = t.length;
+        t.push({
+            b: n.arm,
+            o: [1.6, -.6, 0],
+            p: -1,
+            fix: !0
+        });
+        for (let s = 1; s <= 4; s++)
+            t.push({
+                b: n.arm,
+                o: [1.6 - .2 * s, -.6 - .9 * s, 0],
+                p: f,
+                len: .85,
+                k: 60
+            }),
+            f = t.length - 1
+    }
+    const e = r0(o, t, 60, .94, 160)
+      , c = new b.InstancedMesh(a,a0(o),t.length);
+    c.castShadow = !0,
+    c.frustumCulled = !1,
+    o.root.add(c);
+    const h = new b.Matrix4;
+    return {
+        set(n) {
+            c.visible = n,
+            n && e.reset()
+        },
+        up(n, f) {
+            e.step(n, f);
+            for (let s = 0; s < t.length; s++)
+                h.makeScale(1, 1.1, 1).setPosition(e.P[s]),
+                c.setMatrixAt(s, h);
+            c.instanceMatrix.needsUpdate = !0
+        }
+    }
+}
+const y = (o, a, t, e, c) => e(o + c, a, t) < 0 || e(o - c, a, t) < 0 || e(o, a + c, t) < 0 || e(o, a - c, t) < 0 || e(o, a, t + c) < 0 || e(o, a, t - c) < 0
+  , U = (o, a, t) => r.mulc(r.mixc(13156e3, 15920344, r.vnoise(o * 1.2, a * 1.2, t * 1.2)), .9 + .14 * L(o, a, t));
+function v0(o, a, t, e, c) {
+    const h = Math.abs(e);
+    if (o === 0 || o === 1) {
+        const n = c(a, t, e);
+        return n < 0 ? n : h < .75 && c(a, t + .9, e) < 0 ? r.frac((a + 40) / 1.2) < .75 ? U(a, t, e) : -1 : o === 0 && a > -4.5 && a < 1.5 && t < 10.6 && t > 6.4 && y(a, t, e, c, .7) || h < .7 && c(a, t - .9, e) < 0 && a > -1 || y(a, t, e, c, .75) && r.frac((a + 40) / 1.55) < .48 ? U(a, t, e) : -1
+    }
+    if (o === 2) {
+        const n = c(a, t, e);
+        if (n < 0)
+            return n;
+        const f = (t - 12.4) / 4;
+        return r.frac(f * 4.5) < .68 && Math.hypot(a - 4.7 - (t - 12.4) * .22, e) < 1.6 ? U(a, t, e) : -1
+    }
+    if (o === 3) {
+        const n = c(a, t, e);
+        if (n < 0)
+            return n;
+        const f = Math.hypot(a - 6.75, t - 18.85, h - 2.1);
+        return f < 1.45 ? f < 1.2 ? -1 : 1315866 : Math.hypot(a - 9.7, t - 18.7, h - 2.3) < 1 ? -1 : n === V().tooth || n === V().nostril || n === V().mouth ? n : U(a, t, e)
+    }
+    if (o === 4) {
+        const n = c(a, t, e);
+        return n < 0 || n === V().tooth ? n : n === V().mouth || n === V().tongue ? -1 : U(a, t, e)
+    }
+    if (o >= 5 && o <= 8) {
+        const n = c(a, t, e);
+        return n < 0 ? n : n === V().claw ? U(a, t, e) : y(a, t, e, c, .28) ? -1 : U(a, t, e)
+    }
+    if (o >= 9 && o <= 14) {
+        const n = c(a, t, e);
+        if (n < 0)
+            return n;
+        const f = r.frac((a + 40) / 1.9);
+        return f > .72 || y(a, t, e, c, .45) && f > .15 && f < .55 && t < 11 ? -1 : U(a, t, e)
+    }
+    if (o === 15 || o === 18) {
+        const n = Math.hypot(a - .15 * (1 + t / 5), e);
+        if (t < -.5 && t > -4.6 && n > .62)
+            return -1;
+        const f = c(a, t, e);
+        return f < 0 ? f : U(a, t, e)
+    }
+    if (o === 16 || o === 19) {
+        if (Math.hypot(a, e) > .55 && t < -.7 && t > -3.9)
+            return -1;
+        const n = c(a, t, e);
+        return n < 0 ? n : U(a, t, e)
+    }
+    if (o === 17 || o === 20) {
+        const n = c(a, t, e);
+        return n < 0 || n === V().claw ? n : t < -.75 && Math.abs(r.frac(e * 1.5 + .5) - .5) > .22 && a > .6 ? -1 : U(a, t, e)
+    }
+    return c(a, t, e)
+}
+function k0(o) {
+    const a = new b.SphereGeometry(.48,10,8)
+      , t = e0(8055039, 3.2)
+      , e = [];
+    for (const h of [-1, 1]) {
+        const n = new b.Mesh(a,t);
+        n.position.set(6.95 - B[0], 18.85 - B[1], h * 2.05),
+        o.head.add(n),
+        e.push(n)
+    }
+    let c = 0;
+    return {
+        set(h) {
+            for (const n of e)
+                n.visible = h
+        },
+        up(h) {
+            c += h;
+            const n = .85 + .15 * Math.sin(c * 9) * Math.sin(c * 3.7);
+            for (const f of e)
+                f.scale.setScalar(n)
+        }
+    }
+}
+const P = (o, a, t) => {
+    const e = r.frac(o * 2.6) < .5 != r.frac(a * 2.6) < .5;
+    return r.mulc(r.mixc(10123336, 12096092, r.vnoise(o * .9, a * .9, t * .9)), (e ? .9 : 1.04) * (r.fbm3(o * .4, a * .4, t * .4, 3) > .64 ? .72 : 1))
+}
+;
+function C0(o, a, t, e, c) {
+    const h = Math.abs(e);
+    if (o === 3) {
+        const f = c(a, t, e);
+        if (f < 0) {
+            if (Math.hypot(a - 6.2, t - 22.1, e) < .9 || t > 21.4 && t < 23.4 && Math.hypot(a - 6.2 + (t - 21.4) * .6, e) < .5 + .25 * Math.sin(t * 5))
+                return P(a, t, e);
+            const u = a - 8.2
+              , m = t - 18.4
+              , p = Math.hypot(u, m, e) || 1
+              , i = .45 / p;
+            return c(a - u * i, t - m * i, e - e * i) >= 0 && t > 15.6 ? P(a, t, e) : -1
+        }
+        const s = Math.hypot((a - 6.95) * .85, t - 18.95 + .3 * Math.sin(a * 2), h - 2.45);
+        return s < 1.15 ? s < .55 && f === V().eyeW ? f : 920072 : t < 16.6 && a > 8.2 && Math.abs(r.frac((a - 8.2) / .75) - .5) < .16 && t > 15.7 ? 2759184 : P(a, t, e)
+    }
+    if (o === 4) {
+        const f = c(a, t, e);
+        return f < 0 ? f : P(a, t, e)
+    }
+    const n = c(a, t, e);
+    if (n < 0)
+        return n;
+    if (o === 2) {
+        const f = (t - 12.4) / 4 + (a - 4.7) * .06;
+        return f > .74 && f < .92 ? r.frac(f * 30 + Math.atan2(e, a - 5) * 1.5) < .5 ? 9071162 : 6966826 : f > .92 ? P(a, t, e) : n
+    }
+    return o === 0 || o === 1 ? Math.abs(h - 1.6) < .45 && a > -1.5 && t > 8 ? 5913120 : r.fbm3(a * .5, t * .5, e * .5 + 9, 3) > .63 ? r.mixc(n, 3811866, .6) : o === 0 && t < 7.6 && t > 6.6 ? 1709072 : n : o === 6 || o === 8 ? n === V().claw ? 1709076 : 2236446 : n
+}
+function g0(o) {
+    const a = new r.Grid(-1.2,-1,-.5,1.2,15,.5,4);
+    a.sculpt( (h, n, f) => {
+        if (n < 3.2)
+            return Math.hypot(h, f) < .42 ? r.frac(n * 2.5) < .45 ? 1710622 : 2763312 : n > 2.9 && Math.abs(h) < .9 && Math.abs(f) < .3 ? 3816e3 : -1;
+        if (Math.abs(f) > .12 + .1 * (1 - Math.abs(h) / 1.1))
+            return -1;
+        const s = 14.2 - Math.max(0, h) * 1.6;
+        return n > s || h < -.55 || h > 1.05 ? -1 : h > .8 ? 15265012 : r.mulc(r.mixc(9080988, 12107464, r.vnoise(h * 2, n * .3, 1)), .92 + .1 * L(h, n, f))
+    }
+    );
+    const t = Z(a, o, .3)
+      , e = new b.Group;
+    e.position.set(.5, -1, .65),
+    e.rotation.set(0, 0, 3.55),
+    e.add(t),
+    o.arms[0].fore.add(e);
+    const c = {
+        hold: e,
+        ang: 3.55,
+        set(h) {
+            e.visible = h
+        },
+        up() {
+            c0(o, e, c.ang)
+        }
+    };
+    return c
+}
+const K = [8.3, 19.4]
+  , Y = [4.75, 4.05, 4.25];
+function G0(o, a, t, e, c) {
+    const h = Math.abs(e);
+    if (o === 3) {
+        const f = Math.atan2(e, a - K[0])
+          , s = 1 + .06 * Math.cos(f * 8);
+        if (Math.hypot(a - 7.7 + (t - 23) * .35, e) < .55 && t > 22.6 && t < 25.2)
+            return r.mulc(5074476, .8 + .3 * L(a, t, e));
+        const u = (a - K[0]) / (Y[0] * s)
+          , m = (t - K[1]) / Y[1]
+          , p = e / (Y[2] * s)
+          , i = Math.hypot(u, m, p);
+        if (i > 1)
+            return t < 16.2 && Math.hypot(a - 6, e) < 2.6 && t > 13.8 ? 9071162 : -1;
+        if (i < .8)
+            return -1;
+        if (a > K[0] + 1.2) {
+            const l = (t - K[1]) / Y[1]
+              , d = e / Y[2];
+            for (const R of [-1, 1]) {
+                const F = d - R * .4
+                  , j = l - .22;
+                if (j > -.15 && j < .26 && Math.abs(F) < (.26 - j) * .7)
+                    return -1
+            }
+            if (l > -.1 && l < .08 && Math.abs(d) < (.08 - l) * .7)
+                return -1;
+            const M = -.42 + .14 * d * d * 2
+              , v = .07 * (Math.abs(r.frac(d * 4.6 + .25) - .5) * 2 - .5);
+            if (Math.abs(d) < .66 && Math.abs(l - (M + v)) < .085 + .05 * (1 - Math.abs(d) / .66))
+                return -1
+        }
+        return r.mulc(r.mixc(10831887, 15103004, r.smooth(-.6, .5, Math.cos(f * 8))), .85 + .25 * r.vnoise(a * 1.2, t * 1.2, e * 1.2))
+    }
+    if (o === 4)
+        return -1;
+    const n = c(a, t, e);
+    if (o === 2) {
+        if (n < 0) {
+            const s = (t - 12.4) / 4;
+            return s > .6 && s < .95 && Math.hypot(a - 5.5, e) < 3.3 && r.hash3(Math.floor(a * 3), Math.floor(t * 3), Math.floor(e * 3)) < .18 && t > 14.3 ? 15255648 : -1
+        }
+        const f = (t - 12.4) / 4 + (a - 4.7) * .06;
+        return f > .5 && f < .62 ? 6966826 : P(a, t, e)
+    }
+    if (n < 0)
+        return n;
+    if (o === 0 || o === 1) {
+        const f = Math.floor((a + 40) / 3.4)
+          , s = Math.floor((t + 40) / 3.4)
+          , u = r.hash3(f, s, e > 0 ? 11 : 13);
+        if (u < .18 && h > 1.4) {
+            const m = r.frac((a + 40) / 3.4)
+              , p = r.frac((t + 40) / 3.4);
+            if (m > .12 && m < .88 && p > .12 && p < .88)
+                return m < .2 || m > .8 || p < .2 || p > .8 ? r.frac((m + p) * 6) < .5 ? 2759184 : 9071162 : u < .09 ? Math.floor(m * 6) + Math.floor(p * 6) & 1 ? 10103330 : 5904916 : 3824266
+        }
+        return o === 0 && t > 6.2 && t < 7.2 ? r.frac(a * 1.6) < .5 ? 9071162 : 6966826 : P(a, t, e)
+    }
+    return o === 5 || o === 7 ? P(a, t, e) : o === 6 || o === 8 ? n === V().claw ? 15255648 : t < 10.4 ? r.frac(a * 3 + e * 2) < .5 ? 15255648 : 13148224 : P(a, t, e) : o >= 9 && o <= 14 ? o >= 13 ? r.frac(t * 2 + e * 3) < .5 ? 15255648 : 13148224 : P(a, t, e) : o === 15 || o === 18 ? r.hash3(Math.floor(a / 1.6), Math.floor(t / 1.6), 3) < .15 ? 6957594 : r.mulc(3824266, .9 + .15 * r.vnoise(a * 2, t * 2, e * 2)) : o === 16 || o === 19 ? r.mulc(3824266, .85 + .15 * r.vnoise(a * 2, t * 2, e * 2)) : n
+}
+function V0(o) {
+    const a = new b.Mesh(new b.SphereGeometry(2.6,12,10),e0(16752688, 2.6));
+    a.position.set(K[0] - B[0], K[1] - B[1], 0),
+    o.head.add(a);
+    const t = new r.Grid(-7.5,-.5,-7.5,7.5,5.5,7.5,2.5);
+    t.sculpt( (s, u, m) => {
+        const p = Math.hypot(s, m)
+          , i = Math.atan2(m, s)
+          , l = .35 * Math.sin(i * 3) + .25 * Math.sin(i * 5 + 1)
+          , d = r.mulc(r.mixc(13148232, 15255658, r.vnoise(s * 1.5, u, m * 1.5)), r.frac(p * 1.8 + i) < .2 ? .8 : 1);
+        return u < .7 && p < 7 + l && u > -.2 + .08 * (p - 4) * Math.sin(i * 2) ? p > 6.5 + l && r.hash3(Math.floor(i * 9), 1, 1) < .3 ? -1 : d : u >= .7 && u < 5 && p < 3.6 - (u - .7) * .18 + .3 * Math.sin(i * 2 + u) ? u < 1.6 ? 5909018 : Math.hypot(s - 2.6, u - 3, m - 1.2) < 1.1 ? 3824266 : u > 4.5 && p < 1.8 ? -1 : d : -1
+    }
+    );
+    const e = Z(t, o, .5);
+    e.position.set(7.6 - B[0], 22.4 - B[1], 0),
+    e.rotation.set(.12, 0, .18),
+    o.head.add(e);
+    const c = R0(o)
+      , h = new r.Grid(-9,-1.4,-1.4,13,1.4,1.4,3);
+    h.sculpt( (s, u, m) => {
+        if (s > -2.5)
+            return Math.hypot(u, m) < .42 + (s > 11.4 ? .2 : 0) ? r.frac(s * .8) < .12 ? 3810324 : 6964262 : -1;
+        const p = (-2.5 - s) / 6.5
+          , i = .6 + 1 * Math.sqrt(Math.min(1, p * 1.6));
+        return Math.hypot(u, m) > i || p > 1 ? -1 : Math.abs(s + 3.2) < .4 ? 5909018 : r.frac(Math.atan2(m, u) * 3 + s * .3) < .5 ? 14726224 : 13146168
+    }
+    );
+    const n = Z(h, o, .4);
+    n.position.set(.5, 5.2, 0),
+    n.visible = !1,
+    o.root.add(n);
+    let f = 0;
+    return {
+        set(s) {
+            a.visible = e.visible = s,
+            c.set(s),
+            s || (n.visible = !1)
+        },
+        up(s, u) {
+            f += s,
+            a.scale.setScalar(.92 + .08 * Math.sin(f * 11) * Math.sin(f * 4.3)),
+            c.step(s, o.hwFly ? Math.max(u, 90) : u),
+            n.visible = !!o.hwFly,
+            n.visible && (n.rotation.z = -.08 + .04 * Math.sin(f * 3),
+            n.position.y = 5 + .3 * Math.sin(f * 2.4))
+        }
+    }
+}
+function R0(o) {
+    const s = new b.MeshStandardMaterial({
+        roughness: .9,
+        metalness: 0,
+        envMapIntensity: .5
+    })
+      , u = new b.InstancedMesh(new b.BoxGeometry(1,1,1),s,484);
+    u.castShadow = !0,
+    u.receiveShadow = !0,
+    u.frustumCulled = !1,
+    o.root.add(u);
+    const m = new b.Color
+      , p = new Uint8Array(484);
+    for (let k = 0; k < 22; k++)
+        for (let g = 0; g < 22; g++) {
+            const E = r.hash3(g, k, 3)
+              , N = k * 22 + g;
+            p[N] = k > 15 && r.hash3(g >> 1, k >> 1, 5) < (k - 15) * .12 || k > 5 && r.hash3(g, k, 8) < .025 ? 1 : 0;
+            const S = r.hash3(g >> 2, k >> 2, 9) < .12;
+            u.setColorAt(N, m.setHex(r.mulc(S ? 3811914 : E > .5 ? 2761760 : 2235416, .85 + .3 * E)))
+        }
+    const i = []
+      , l = []
+      , d = new b.Vector3
+      , M = new b.Vector3
+      , v = new b.Matrix4;
+    for (let k = 0; k < 64; k++)
+        i.push(new b.Vector3),
+        l.push(new b.Vector3);
+    let R = !1
+      , F = 0;
+    const j = (k, g) => {
+        const E = (k / 7 - .5) * 2 * 3.6;
+        return g.set(1.6 - $[0] - Math.abs(E) * .1, 15 - $[1] - Math.abs(E) * .22, E),
+        o.chest.localToWorld(g),
+        o.root.worldToLocal(g)
+    }
+      , J = (k, g, E, N) => {
+        M.subVectors(k, g);
+        const S = M.length();
+        if (S < 1e-5)
+            return;
+        const G = (S - E) / S;
+        k.addScaledVector(M, -G * N),
+        N < 1 && g.addScaledVector(M, G * (1 - N))
+    }
+    ;
+    return {
+        set(k) {
+            if (u.visible = k,
+            k) {
+                R = !1;
+                for (let g = 0; g < 90; g++)
+                    this.step(1 / 60, 0)
+            }
+        },
+        step(k, g) {
+            F += k,
+            o.root.updateMatrixWorld(!0);
+            const E = o.hips.position;
+            for (let S = 0; S < 8; S++)
+                j(S, i[S]),
+                l[S].copy(i[S]);
+            if (!R) {
+                for (let S = 1; S < 8; S++)
+                    for (let G = 0; G < 8; G++) {
+                        const w = S * 8 + G;
+                        i[w].copy(i[G]).add(d.set(-S * 1.45, .4, i[G].z * .05 * S)),
+                        l[w].copy(i[w])
+                    }
+                R = !0
+            }
+            const N = Math.min(k, 1 / 30) / 2;
+            for (let S = 0; S < 2; S++) {
+                for (let G = 1; G < 8; G++)
+                    for (let w = 0; w < 8; w++) {
+                        const x = G * 8 + w
+                          , C = i[x]
+                          , W = l[x]
+                          , T = G / 7
+                          , _ = Math.sin(F * 10 + G * 1.1 + w * .9) * (.4 + g / 80)
+                          , I = -30 - g * 2.4 * (.35 + T)
+                          , X = -(g > 1 ? 90 : 125) + Math.sin(F * 6 - G) * g * .5 * T
+                          , D = _ * 30 * T * (w - 7 / 2) / 4 + (i[w].z * (1 + .1 * G) - C.z) * 55;
+                        let q = (C.x - W.x) * .96
+                          , Q = (C.y - W.y) * .96
+                          , O = (C.z - W.z) * .96;
+                        const A = Math.hypot(q, Q, O);
+                        A > 1.6 && (q *= 1.6 / A,
+                        Q *= 1.6 / A,
+                        O *= 1.6 / A),
+                        W.copy(C),
+                        C.set(C.x + q + I * N * N, C.y + Q + X * N * N, C.z + O + D * N * N)
+                    }
+                for (let G = 0; G < 3; G++) {
+                    for (let w = 1; w < 8; w++)
+                        for (let x = 0; x < 8; x++) {
+                            const C = w * 8 + x;
+                            J(i[C], i[C - 8], 1.45, w === 1 ? 1 : .5),
+                            x > 0 && J(i[C], i[C - 1], 1 * (1 + .08 * w), .5),
+                            x > 1 && J(i[C], i[C - 2], 2 * (1 + .08 * w), .5),
+                            w > 1 && J(i[C], i[C - 16], 2 * 1.45, w === 2 ? .8 : .5)
+                        }
+                    for (let w = 8; w < i.length; w++) {
+                        const x = i[w]
+                          , C = x.x - E.x
+                          , W = Math.abs((C + 1.8) / 8.6);
+                        if (W < 1) {
+                            const _ = Math.pow(1 - Math.pow(W, 2.6), .3846153846153846)
+                              , I = 4.5 * _ + .35
+                              , X = 3.75 * _ + .35
+                              , D = E.y + .9 + .5 * r.smooth(0, 6, C)
+                              , q = (x.y - D) / I
+                              , Q = x.z / X
+                              , O = Math.hypot(q, Q);
+                            if (O < 1) {
+                                const A = l[w]
+                                  , i0 = x.y
+                                  , h0 = x.z;
+                                O < 1e-4 ? x.y = D + I : (x.y = D + q / O * I,
+                                x.z = Q / O * X),
+                                A.y += x.y - i0,
+                                A.z += x.z - h0,
+                                A.lerp(x, .3)
+                            }
+                        }
+                        const T = -.2 + r.TR.g0;
+                        x.y < T && (l[w].y += T - x.y,
+                        x.y = T)
+                    }
+                }
+            }
+            for (let S = 0; S < 22; S++) {
+                const G = Math.min(6, Math.floor(S / 3))
+                  , w = S / 3 - G;
+                for (let x = 0; x < 22; x++) {
+                    const C = Math.min(6, Math.floor(x / 3))
+                      , W = x / 3 - C
+                      , T = G * 8 + C
+                      , _ = S * 22 + x;
+                    M.copy(i[T]).multiplyScalar((1 - W) * (1 - w)).addScaledVector(i[T + 1], W * (1 - w)).addScaledVector(i[T + 8], (1 - W) * w).addScaledVector(i[T + 8 + 1], W * w);
+                    const I = p[_] ? 0 : .68;
+                    v.makeScale(I, I, I).setPosition(M),
+                    u.setMatrixAt(_, v)
+                }
+            }
+            u.instanceMatrix.needsUpdate = !0
+        }
+    }
+}
+const z = new b.Quaternion
+  , s0 = new b.Quaternion;
+function c0(o, a, t) {
+    o.root.getWorldQuaternion(z),
+    o.arms[0].fore.getWorldQuaternion(s0),
+    z.invert().multiply(s0),
+    a.rotation.z = t - 2 * Math.atan2(z.z, z.w)
+}
